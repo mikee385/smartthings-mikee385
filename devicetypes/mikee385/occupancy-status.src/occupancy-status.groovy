@@ -38,11 +38,13 @@ metadata {
     }
 
     tiles(scale: 2) {
-        standardTile("state", "device.state", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
-            state "occupied", label: 'Occupied', backgroundColor:"#00A0DC"
-            state "vacant", label: 'Vacant', backgroundColor:"#cccccc"
-            state "checking", label: 'Checking', backgroundColor:"#e86d13"
-            state "blind", label: 'Blind', backgroundColor:"#ff0000"
+        multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
+            tileAttribute ("device.stateColor", key: "PRIMARY_CONTROL") {
+                attributeState "occupied", label: 'Occupied', backgroundColor:"#00A0DC"
+                attributeState "vacant", label: 'Vacant', backgroundColor:"#cccccc"
+                attributeState "checking", label: 'Checking', backgroundColor:"#e86d13"
+                attributeState "blind", label: 'Blind', backgroundColor:"#ff0000"
+            }
         }
         standardTile("occupied", "device.occupied", width: 2, height: 2, canChangeIcon: true) {
             state "occupied", label:"Occupied", icon: "st.Health & Wellness.health12", action: "occupied", backgroundColor:"#ffffff", nextState:"toOccupied"
