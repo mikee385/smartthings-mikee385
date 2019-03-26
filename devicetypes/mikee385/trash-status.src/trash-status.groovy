@@ -24,8 +24,8 @@ metadata {
         attribute "in", "boolean"
         attribute "out", "boolean"
 
-        command "in"
-        command "out"
+        command "bringIn"
+        command "takeOut"
     }
 
     simulator {
@@ -35,17 +35,17 @@ metadata {
     tiles(scale: 2) {
         multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true) {
             tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
-                attributeState "in", label: 'In', icon:"st.secondary.remove", backgroundColor:"#00A0DC", 
+                attributeState "in", label: 'In', icon:"st.secondary.remove", backgroundColor:"#00A0DC"
                 attributeState "out", label: 'Out', icon:"st.secondary.remove", backgroundColor:"#e86d13"
             }
         }
-        standardTile("in", "device.in", width: 2, height: 2, canChangeIcon: true) {
-            state "in", label:"In", icon: "st.thermostat.thermostat-down", action: "in", backgroundColor:"#ffffff", nextState:"toIn"
-            state "toIn", label:"Updating", icon:"st.thermostat.thermostat-down", backgroundColor:"#00A0DC"
-        }
         standardTile("out", "device.out", width: 2, height: 2, canChangeIcon: true) {
-            state "out", label:"Out", icon: "st.thermostat.thermostat-up", action: "out", backgroundColor:"#ffffff", nextState:"toOut"
+            state "out", label:"Take Out", icon: "st.thermostat.thermostat-up", action: "takeOut", backgroundColor:"#ffffff", nextState:"toOut"
             state "toOut", label:"Updating", icon: "st.thermostat.thermostat-up", backgroundColor:"#00A0DC"
+        }
+        standardTile("in", "device.in", width: 2, height: 2, canChangeIcon: true) {
+            state "in", label:"Bring In", icon: "st.thermostat.thermostat-down", action: "bringIn", backgroundColor:"#ffffff", nextState:"toIn"
+            state "toIn", label:"Updating", icon:"st.thermostat.thermostat-down", backgroundColor:"#00A0DC"
         }
         main (["state"])
         details(["state", "in", "out"])
@@ -75,7 +75,7 @@ def initialize() {
     sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
     
     if (!device.currentValue("state")) {
-        in()
+        bringIn()
     }
 }
 
@@ -88,35 +88,35 @@ def parse(String description) {
 def on() {
     log.debug "Executing 'on'"
     
-    in()
+    takeOut()
 }
 
 def off() {
     log.debug "Executing 'off'"
     
-    out()
+    bringIn()
 }
 
 def push(buttonNumber) {
     log.debug "Executing 'push' with button '$buttonNumber'"
         
     if (button == 1) {
-        in()
+        takeOut()
     } else if (button == 2) {
-        out()
+        bringIn()
     } else {
         sendEvent(name: "button", value: "pushed", data: [buttonNumber: "$buttonNumber"], descriptionText: "$device.displayName button $buttonNumber was pushed", isStateChange: true, displayed: true)
     }
 }
 
-def in() {
-    log.debug "Executing 'in'"    
+def bringIn() {
+    log.debug "Executing 'bringIn'"    
     
     setStateToIn()
 }
 
-def out() {
-    log.debug "Executing 'out'"
+def takeOut() {
+    log.debug "Executing 'takeOut'"
     
     setStateToOut()
 }
