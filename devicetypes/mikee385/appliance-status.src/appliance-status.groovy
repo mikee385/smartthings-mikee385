@@ -20,10 +20,10 @@ metadata {
         capability "Sensor"
         capability "Switch"
 
-        attribute "state", "enum", ["started", "finished", "not started"]
+        attribute "state", "enum", ["started", "finished", "unstarted"]
         attribute "started", "boolean"
         attribute "finished", "boolean"
-        attribute "not started", "boolean"
+        attribute "unstarted", "boolean"
 
         command "start"
         command "finish"
@@ -38,7 +38,7 @@ metadata {
         standardTile("state", "device.state", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
             state "started", label: 'Running', backgroundColor:"#00A0DC"
             state "finished", label: 'Finished', backgroundColor:"#cccccc"
-            state "not started", label: 'Not Started', backgroundColor:"#e86d13"
+            state "unstarted", label: 'Unstarted', backgroundColor:"#e86d13"
         }
         standardTile("start", "device.started", width: 2, height: 2, canChangeIcon: true) {
             state "started", label:"Start", icon: "st.sonos.play-icon", action: "start", backgroundColor:"#ffffff", nextState:"toStart"
@@ -48,8 +48,8 @@ metadata {
             state "finished", label:"Finish", icon: "st.sonos.stop-icon", action: "finish", backgroundColor:"#ffffff", nextState:"toFinish"
             state "toFinish", label:"Updating", icon: "st.sonos.stop-icon", backgroundColor:"#00A0DC"
         }
-        standardTile("reset", "device.not started", width: 2, height: 2, canChangeIcon: true) {
-            state "not started", label:"Reset", icon: "st.secondary.refresh-icon", action: "reset", backgroundColor:"#ffffff", nextState:"toReset"
+        standardTile("reset", "device.unstarted", width: 2, height: 2, canChangeIcon: true) {
+            state "unstarted", label:"Reset", icon: "st.secondary.refresh-icon", action: "reset", backgroundColor:"#ffffff", nextState:"toReset"
             state "toReset", label:"Updating", icon: "st.secondary.refresh-icon", backgroundColor:"#00A0DC"
         }
         main (["state"])
@@ -131,7 +131,7 @@ def finish() {
 def reset() {
     log.debug "Executing 'reset'"
     
-    setStateToNotStarted()
+    setStateToUnstarted()
 }
 
 private def setStateToStarted() {
@@ -141,7 +141,7 @@ private def setStateToStarted() {
     
     sendEvent(name: "started", value: true, displayed: false)
     sendEvent(name: "finished", value: false, displayed: false)
-    sendEvent(name: "not started", value: false, displayed: false)
+    sendEvent(name: "unstarted", value: false, displayed: false)
     
     sendEvent(name: "switch", value: 'on', displayed: false)
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], isStateChange: true, displayed: false)
@@ -154,20 +154,20 @@ private def setStateToFinished() {
     
     sendEvent(name: "started", value: false, displayed: false)
     sendEvent(name: "finished", value: true, displayed: false)
-    sendEvent(name: "not started", value: false, displayed: false)
+    sendEvent(name: "unstarted", value: false, displayed: false)
     
     sendEvent(name: "switch", value: 'off', displayed: false)
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 2], isStateChange: true, displayed: false)
 }
 
-private def setStateToNotStarted() {
+private def setStateToUnstarted() {
     log.debug "Executing 'setStateToReset'"
     
-    sendEvent(name: "state", value: "not started", descriptionText: "$device.displayName changed to not started", displayed: true)
+    sendEvent(name: "state", value: "unstarted", descriptionText: "$device.displayName changed to unstarted", displayed: true)
     
     sendEvent(name: "started", value: false, displayed: false)
     sendEvent(name: "finished", value: false, displayed: false)
-    sendEvent(name: "not started", value: true, displayed: false)
+    sendEvent(name: "unstarted", value: true, displayed: false)
     
     sendEvent(name: "switch", value: 'off', displayed: false)
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 3], isStateChange: true, displayed: false)
