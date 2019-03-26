@@ -35,8 +35,8 @@ metadata {
     tiles(scale: 2) {
         multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true) {
             tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
-                attributeState "in", label: 'In', icon:"st.secondary.remove", backgroundColor:"#00A0DC"
-                attributeState "out", label: 'Out', icon:"st.secondary.remove", backgroundColor:"#e86d13"
+                attributeState "in", label: 'In', icon:"st.Office.office10", backgroundColor:"#00A0DC"
+                attributeState "out", label: 'Out', icon:"st.Office.office10", backgroundColor:"#e86d13"
             }
         }
         standardTile("out", "device.out", width: 2, height: 2, canChangeIcon: true) {
@@ -48,7 +48,7 @@ metadata {
             state "toIn", label:"Updating", icon:"st.thermostat.thermostat-down", backgroundColor:"#00A0DC"
         }
         main (["state"])
-        details(["state", "in", "out"])
+        details(["state", "out", "in"])
     }
     
     preferences {
