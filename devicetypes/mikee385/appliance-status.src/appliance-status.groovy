@@ -24,6 +24,8 @@ metadata {
         attribute "started", "boolean"
         attribute "finished", "boolean"
         attribute "unstarted", "boolean"
+        
+        attribute "stateColor", "enum", ["started-blue", "started-orange", "started-gray", "finished-blue", "finished-orange", "finished-gray", "unstarted-blue", "unstarted-orange", "unstarted-gray"]
 
         command "start"
         command "finish"
@@ -34,11 +36,19 @@ metadata {
         // TODO: define status and reply messages here
     }
 
-    tiles(scale: 2) {
-        standardTile("state", "device.state", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
-            state "started", label: 'Running', backgroundColor:"#00A0DC"
-            state "finished", label: 'Finished', backgroundColor:"#cccccc"
-            state "unstarted", label: 'Unstarted', backgroundColor:"#e86d13"
+    tiles(scale: 2) {    
+        multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
+            tileAttribute ("device.stateColor", key: "PRIMARY_CONTROL") {
+                attributeState "started-blue", label: 'Running', backgroundColor:"#00A0DC"
+                attributeState "started-orange", label: 'Running', backgroundColor:"#e86d13"
+                attributeState "started-gray", label: 'Running', backgroundColor:"#ffffff"
+                attributeState "finished-blue", label: 'Finished', backgroundColor:"#00A0DC"
+                attributeState "finished-orange", label: 'Finished', backgroundColor:"#e86d13"
+                attributeState "finished-gray", label: 'Finished', backgroundColor:"#ffffff"
+                attributeState "unstarted-blue", label: 'Unstarted', backgroundColor:"#00A0DC"
+                attributeState "unstarted-orange", label: 'Unstarted', backgroundColor:"#e86d13"
+                attributeState "unstarted-gray", label: 'Unstarted', backgroundColor:"#ffffff"
+            }
         }
         standardTile("start", "device.started", width: 2, height: 2) {
             state "started", label:"Start", action: "start", backgroundColor:"#008000", nextState:"toStart"
@@ -57,6 +67,9 @@ metadata {
     }
     
     preferences {
+        input name: "stateColorStarted", type: "enum", title: "What color should be shown for 'Started'?", options: ["Blue", "Orange", "Gray"], defaultValue: "Blue", required: true, displayDuringSetup: false
+        input name: "stateColorFinished", type: "enum", title: "What color should be shown for 'Finished'?", options: ["Blue", "Orange", "Gray"], defaultValue: "Orange", required: true, displayDuringSetup: false
+        input name: "stateColorUnstarted", type: "enum", title: "What color should be shown for 'Unstarted'?", options: ["Blue", "Orange", "Gray"], defaultValue: "Gray", required: true, displayDuringSetup: false
     }
 }
 
@@ -145,6 +158,16 @@ private def setStateToStarted() {
     
     sendEvent(name: "switch", value: 'on', displayed: false)
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], isStateChange: true, displayed: false)
+    
+    if (stateColorStarted == "Blue") {
+        sendEvent(name: "stateColor", value: "started-blue", displayed: false)
+    } else if (stateColorStarted == "Orange") {
+        sendEvent(name: "stateColor", value: "started-orange", displayed: false)
+    } else if (stateColorStarted == "Gray") {
+        sendEvent(name: "stateColor", value: "started-gray", displayed: false)
+    } else {
+        sendEvent(name: "stateColor", value: "started-blue", displayed: false)
+    }
 }
 
 private def setStateToFinished() {
@@ -158,6 +181,16 @@ private def setStateToFinished() {
     
     sendEvent(name: "switch", value: 'off', displayed: false)
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 2], isStateChange: true, displayed: false)
+    
+    if (stateColorFinished == "Blue") {
+        sendEvent(name: "stateColor", value: "finished-blue", displayed: false)
+    } else if (stateColorFinished == "Orange") {
+        sendEvent(name: "stateColor", value: "finished-orange", displayed: false)
+    } else if (stateColorFinished == "Gray") {
+        sendEvent(name: "stateColor", value: "finished-gray", displayed: false)
+    } else {
+        sendEvent(name: "stateColor", value: "finished-orange", displayed: false)
+    }
 }
 
 private def setStateToUnstarted() {
@@ -171,4 +204,14 @@ private def setStateToUnstarted() {
     
     sendEvent(name: "switch", value: 'off', displayed: false)
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 3], isStateChange: true, displayed: false)
+    
+    if (stateColorUnstarted == "Blue") {
+        sendEvent(name: "stateColor", value: "unstarted-blue", displayed: false)
+    } else if (stateColorUnstarted == "Orange") {
+        sendEvent(name: "stateColor", value: "unstarted-orange", displayed: false)
+    } else if (stateColorUnstarted == "Gray") {
+        sendEvent(name: "stateColor", value: "unstarted-gray", displayed: false)
+    } else {
+        sendEvent(name: "stateColor", value: "unstarted-gray", displayed: false)
+    }
 }
