@@ -41,7 +41,7 @@ metadata {
         multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
             tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
                 attributeState "occupied", label: 'Occupied', backgroundColor:"#00A0DC"
-                attributeState "vacant", label: 'Vacant', backgroundColor:"#cccccc"
+                attributeState "vacant", label: 'Vacant', backgroundColor:"#ffffff"
                 attributeState "checking", label: 'Checking', backgroundColor:"#e86d13"
                 attributeState "blind", label: 'Blind', backgroundColor:"#ff0000"
             }
