@@ -1,5 +1,5 @@
 /**
- *  Occupancy Virtual Device Handler
+ *  Occupancy Status Device Handler
  *
  *  Copyright 2019 Michael Pierce
  *
