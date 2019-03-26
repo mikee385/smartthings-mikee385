@@ -14,54 +14,54 @@
  *
  */
 metadata {
-definition (name: "Occupancy Status", namespace: "mikee385", author: "Michael Pierce") {
-capability "Actuator"
-capability "Button"
-capability "Occupancy Sensor"
-capability "Presence Sensor"
-capability "Sensor"
-capability "Switch"
+    definition (name: "Occupancy Status", namespace: "mikee385", author: "Michael Pierce") {
+        capability "Actuator"
+        capability "Button"
+        capability "Occupancy Sensor"
+        capability "Presence Sensor"
+        capability "Sensor"
+        capability "Switch"
 
-attribute "state", "enum", ["occupied", "vacant", "checking", "blind"]
+        attribute "state", "enum", ["occupied", "vacant", "checking", "blind"]
         attribute "occupied", "boolean"
-attribute "vacant", "boolean"
-attribute "checking", "boolean"
-attribute "blind", "boolean"
+        attribute "vacant", "boolean"
+        attribute "checking", "boolean"
+        attribute "blind", "boolean"
 
-command "occupied"
-command "vacant"
-command "checking"
-}
+        command "occupied"
+        command "vacant"
+        command "checking"
+    }
 
-simulator {
-// TODO: define status and reply messages here
-}
+    simulator {
+        // TODO: define status and reply messages here
+    }
 
-tiles(scale: 2) {
-standardTile("state", "device.state", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
-state "occupied", label: 'Occupied', backgroundColor:"#00A0DC"
+    tiles(scale: 2) {
+        standardTile("state", "device.state", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
+            state "occupied", label: 'Occupied', backgroundColor:"#00A0DC"
             state "vacant", label: 'Vacant', backgroundColor:"#cccccc"
-state "checking", label: 'Checking', backgroundColor:"#e86d13"
-state "blind", label: 'Blind', backgroundColor:"#ff0000"
-}
+            state "checking", label: 'Checking', backgroundColor:"#e86d13"
+            state "blind", label: 'Blind', backgroundColor:"#ff0000"
+        }
         standardTile("occupied", "device.occupied", width: 2, height: 2, canChangeIcon: true) {
-state "occupied", label:"Occupied", icon: "st.Health & Wellness.health12", action: "occupied", backgroundColor:"#ffffff", nextState:"toOccupied"
-state "toOccupied", label:"Updating", icon:"st.Health & Wellness.health12", backgroundColor:"#00A0DC"
-}
+            state "occupied", label:"Occupied", icon: "st.Health & Wellness.health12", action: "occupied", backgroundColor:"#ffffff", nextState:"toOccupied"
+            state "toOccupied", label:"Updating", icon:"st.Health & Wellness.health12", backgroundColor:"#00A0DC"
+        }
         standardTile("checking", "device.checking", width: 2, height: 2, canChangeIcon: true) {
-state "checking", label:"Checking", icon: "st.Health & Wellness.health9", action: "checking", backgroundColor:"#ffffff", nextState:"toChecking"
-state "toChecking", label:"Updating", icon: "st.Health & Wellness.health9", backgroundColor:"#00A0DC"
-}
+            state "checking", label:"Checking", icon: "st.Health & Wellness.health9", action: "checking", backgroundColor:"#ffffff", nextState:"toChecking"
+            state "toChecking", label:"Updating", icon: "st.Health & Wellness.health9", backgroundColor:"#00A0DC"
+        }
         standardTile("vacant", "device.vacant", width: 2, height: 2, canChangeIcon: true) {
-state "vacant", label:"Vacant", icon: "st.Home.home18", action: "vacant", backgroundColor:"#ffffff", nextState:"toVacant"
-state "toVacant", label:"Updating", icon: "st.Home.home18", backgroundColor:"#00A0DC"
-}
+            state "vacant", label:"Vacant", icon: "st.Home.home18", action: "vacant", backgroundColor:"#ffffff", nextState:"toVacant"
+            state "toVacant", label:"Updating", icon: "st.Home.home18", backgroundColor:"#00A0DC"
+        }
         main (["state"])
-details(["state", "occupied", "checking", "vacant"])
-}
+        details(["state", "occupied", "checking", "vacant"])
+    }
     
     preferences {
-input "checkingPeriod", "number", title: "Checking Period in Seconds\nHow long (in seconds) should zone stay in the 'checking' state (including the 'blind' period) before transitioning to the 'vacant' state?", range: "0..*", defaultValue: 240, required: true, displayDuringSetup: false
+        input "checkingPeriod", "number", title: "Checking Period in Seconds\nHow long (in seconds) should zone stay in the 'checking' state (including the 'blind' period) before transitioning to the 'vacant' state?", range: "0..*", defaultValue: 240, required: true, displayDuringSetup: false
         input "blindPeriod", "number", title: "Blind Period in Seconds\nHow long (in seconds) at the beginning of the 'checking' state should zone ignore certain events?", range: "0..*", defaultValue: 0, required: true, displayDuringSetup: false
     }
 }
@@ -69,21 +69,21 @@ input "checkingPeriod", "number", title: "Checking Period in Seconds\nHow long (
 def installed() {
     log.debug "Executing 'installed'"
     
-initialize()
+    initialize()
 }
 
 def updated() {
     log.debug "Executing 'updated'"
     
-unschedule()
+    unschedule()
     initialize()
 }
 
 def initialize() {
     log.debug "Executing 'initialize'"
     
-sendEvent(name: "numberOfButtons", value: 3, displayed: false)
-sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
+    sendEvent(name: "numberOfButtons", value: 3, displayed: false)
+    sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
     
     if (!device.currentValue("state")) {
         vacant()
@@ -92,59 +92,59 @@ sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
 
 // parse events into attributes
 def parse(String description) {
-log.debug "Parsing '${description}'"
+    log.debug "Parsing '${description}'"
 }
 
 // handle commands
 def on() {
-log.debug "Executing 'on'"
+    log.debug "Executing 'on'"
     
-occupied()
+    occupied()
 }
 
 def off() {
-log.debug "Executing 'off'"
+    log.debug "Executing 'off'"
     
-vacant()
+    vacant()
 }
 
 def push(buttonNumber) {
-log.debug "Executing 'push' with button '$buttonNumber'"
+    log.debug "Executing 'push' with button '$buttonNumber'"
         
     if (button == 1) {
-    occupied()
+        occupied()
     } else if (button == 2) {
-    checking()
+        checking()
     } else if (button == 3) {
-    vacant()
+        vacant()
     } else {
-sendEvent(name: "button", value: "pushed", data: [buttonNumber: "$buttonNumber"], descriptionText: "$device.displayName button $buttonNumber was pushed", isStateChange: true, displayed: true)
+        sendEvent(name: "button", value: "pushed", data: [buttonNumber: "$buttonNumber"], descriptionText: "$device.displayName button $buttonNumber was pushed", isStateChange: true, displayed: true)
     }
 }
 
 def occupied() {
-log.debug "Executing 'occupied'"    
+    log.debug "Executing 'occupied'"    
     
     setStateToOccupied()
 }
 
 def vacant() {
-log.debug "Executing 'vacant'"
+    log.debug "Executing 'vacant'"
     
     setStateToVacant()
 }
 
 def checking() {
-log.debug "Executing 'checking'"
+    log.debug "Executing 'checking'"
     
     if (blindPeriod > 0) {
-    setStateToBlind()
+        setStateToBlind()
         runIn(blindPeriod, resumeFromBlind)
     } else if (checkingPeriod > 0) {
-    setStateToChecking()
+        setStateToChecking()
         runIn(checkingPeriod, resumeFromChecking)
     } else {
-    setStateToVacant()
+        setStateToVacant()
     }
 }
 
@@ -153,10 +153,10 @@ def resumeFromBlind() {
 
     def remainingTime = checkingPeriod - blindPeriod
     if (remainingTime > 0) {
-    setStateToChecking()
+        setStateToChecking()
         runIn(remainingTime, resumeFromChecking)
     } else {
-    setStateToVacant()
+        setStateToVacant()
     }
 }
 
@@ -169,7 +169,7 @@ def resumeFromChecking() {
 private def setStateToOccupied() {
     log.debug "Executing 'setStateToOccupied'"
     
-sendEvent(name: "state", value: "occupied", descriptionText: "$device.displayName changed to occupied", displayed: true)
+    sendEvent(name: "state", value: "occupied", descriptionText: "$device.displayName changed to occupied", displayed: true)
     
     sendEvent(name: "occupied", value: true, displayed: false)
     sendEvent(name: "vacant", value: false, displayed: false)
@@ -188,7 +188,7 @@ sendEvent(name: "state", value: "occupied", descriptionText: "$device.displayNam
 private def setStateToVacant() {
     log.debug "Executing 'setStateToVacant'"
     
-sendEvent(name: "state", value: "vacant", descriptionText: "$device.displayName changed to vacant", displayed: true)
+    sendEvent(name: "state", value: "vacant", descriptionText: "$device.displayName changed to vacant", displayed: true)
     
     sendEvent(name: "occupied", value: false, displayed: false)
     sendEvent(name: "vacant", value: true, displayed: false)
