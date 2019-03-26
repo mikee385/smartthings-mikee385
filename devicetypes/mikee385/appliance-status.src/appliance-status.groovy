@@ -41,12 +41,12 @@ metadata {
             state "not started", label: 'Not Started', backgroundColor:"#e86d13"
         }
         standardTile("start", "device.started", width: 2, height: 2, canChangeIcon: true) {
-            state "started", label:"Start", icon: "st.sonos.play-btn", action: "start", backgroundColor:"#ffffff", nextState:"toStart"
-            state "toStart", label:"Updating", icon:"st.sonos.play-btn", backgroundColor:"#00A0DC"
+            state "started", label:"Start", icon: "st.sonos.play-icon", action: "start", backgroundColor:"#ffffff", nextState:"toStart"
+            state "toStart", label:"Updating", icon:"st.sonos.play-icon", backgroundColor:"#00A0DC"
         }
         standardTile("finish", "device.finished", width: 2, height: 2, canChangeIcon: true) {
-            state "finished", label:"Finish", icon: "st.sonos.stop-btn", action: "finish", backgroundColor:"#ffffff", nextState:"toFinish"
-            state "toFinish", label:"Updating", icon: "st.sonos.stop-btn", backgroundColor:"#00A0DC"
+            state "finished", label:"Finish", icon: "st.sonos.stop-icon", action: "finish", backgroundColor:"#ffffff", nextState:"toFinish"
+            state "toFinish", label:"Updating", icon: "st.sonos.stop-icon", backgroundColor:"#00A0DC"
         }
         standardTile("reset", "device.not started", width: 2, height: 2, canChangeIcon: true) {
             state "not started", label:"Reset", icon: "st.secondary.refresh-icon", action: "reset", backgroundColor:"#ffffff", nextState:"toReset"
