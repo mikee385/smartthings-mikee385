@@ -131,7 +131,7 @@ def finish() {
 def reset() {
     log.debug "Executing 'reset'"
     
-    setStateToReset()
+    setStateToNotStarted()
 }
 
 private def setStateToStarted() {
@@ -160,10 +160,10 @@ private def setStateToFinished() {
     sendEvent(name: "button", value: "pushed", data: [buttonNumber: 2], isStateChange: true, displayed: false)
 }
 
-private def setStateToReset() {
+private def setStateToNotStarted() {
     log.debug "Executing 'setStateToReset'"
     
-    sendEvent(name: "state", value: "reset", descriptionText: "$device.displayName changed to reset", displayed: true)
+    sendEvent(name: "state", value: "not started", descriptionText: "$device.displayName changed to not started", displayed: true)
     
     sendEvent(name: "started", value: false, displayed: false)
     sendEvent(name: "finished", value: false, displayed: false)
