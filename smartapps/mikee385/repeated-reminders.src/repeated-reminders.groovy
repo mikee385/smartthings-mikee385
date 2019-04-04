@@ -34,10 +34,10 @@ def settings() {
             input "reminderSwitch", "capability.switch", title: "Which switch should start and stop the reminder?", required: true, submitOnChange: true
             if (reminderSwitch) input "reminderStart", "enum", title: "Start reminder when switch is:", options: ["Turned On", "Turned Off"], required: true, submitOnChange: true
             if (reminderSwitch && reminderStart) {
-            if (reminderStart == "Turned On") {
-            paragraph "Reminder will start when ${reminderSwitch} is turned on and will stop when ${reminderSwitch} is turned off."
+                if (reminderStart == "Turned On") {
+                    paragraph "Reminder will start when ${reminderSwitch} is turned on and will stop when ${reminderSwitch} is turned off."
                 } else {
-            paragraph "Reminder will start when ${reminderSwitch} is turned off and will stop when ${reminderSwitch} is turned on."
+                    paragraph "Reminder will start when ${reminderSwitch} is turned off and will stop when ${reminderSwitch} is turned on."
                 }
             }
         }
@@ -76,16 +76,16 @@ def settings() {
 }
 
 def installed() {
-log.debug "Installed with settings: ${settings}"
+    log.debug "Installed with settings: ${settings}"
 
-initialize()
+    initialize()
 }
 
 def updated() {
-log.debug "Updated with settings: ${settings}"
+    log.debug "Updated with settings: ${settings}"
 
-unsubscribe()
-initialize()
+    unsubscribe()
+    initialize()
 }
 
 def initialize() {
@@ -101,9 +101,9 @@ def reminderSwitchOnHandler(evt) {
     log.debug "reminderSwitchOnHandler called: $evt"
     
     if (reminderStart == "Turned On") {
-    start()
+        start()
     } else {
-    stop()
+        stop()
     }
 }
 
@@ -111,9 +111,9 @@ def reminderSwitchOffHandler(evt) {
     log.debug "reminderSwitchOffHandler called: $evt"
     
     if (reminderStart == "Turned On") {
-    stop()
+        stop()
     } else {
-    start()
+        start()
     }
 }
 
@@ -121,9 +121,9 @@ def pauseSwitchOnHandler(evt) {
     log.debug "pauseSwitchOnHandler called: $evt"
     
     if (reminderPause == "Turned On") {
-    pause()
+        pause()
     } else {
-    resume()
+        resume()
     }
 }
 
@@ -131,29 +131,29 @@ def pauseSwitchOffHandler(evt) {
     log.debug "pauseSwitchOffHandler called: $evt"
     
     if (reminderPause == "Turned On") {
-    resume()
+        resume()
     } else {
-    pause()
+        pause()
     }
 }
 
 def isStarted() {
     if (reminderStart == "Turned On") {
-    return reminderSwitch.currentSwitch == "on"
+        return reminderSwitch.currentSwitch == "on"
     } else {
-    return reminderSwitch.currentSwitch == "off"
+        return reminderSwitch.currentSwitch == "off"
     }
 }
 
 def isPaused() {
-if (pauseSwitch) {
+    if (pauseSwitch) {
         if (reminderPause == "Turned On") {
             return pauseSwitch.currentSwitch == "on"
         } else {
             return pauseSwitch.currentSwitch == "off"
         }
     } else {
-    return false
+        return false
     }
 }
 
@@ -166,7 +166,7 @@ def start() {
         }
         begin()
     } else {
-    log.debug "Reminder was previously paused"
+        log.debug "Reminder was previously paused"
     }
 }
 
@@ -174,7 +174,7 @@ def stop() {
     log.debug "stop called"
     
     if (stopMessage) {
-    sendPush(stopMessage)
+        sendPush(stopMessage)
     }
     end()
 }
@@ -188,7 +188,7 @@ def pause() {
         }
         end()
     } else {
-    log.debug "Reminder was not previously started"
+        log.debug "Reminder was not previously started"
     }  
 }
 
@@ -201,7 +201,7 @@ def resume() {
         }
         begin()
     } else {
-    log.debug "Reminder was not previously started"
+        log.debug "Reminder was not previously started"
     }    
 }
 
@@ -211,9 +211,9 @@ def begin() {
     state.startTime = now()
     
     if (initialDuration > 0) {
-    runIn(initialDuration, repeat)
+        runIn(initialDuration, repeat)
     } else {
-    repeat()
+        repeat()
     }
 }
 
@@ -228,7 +228,7 @@ def repeat() {
     
     def message = repeatedMessage
     if (includeDurationInMessage) {    
-    def totalMilliseconds = now() - state.startTime        
+        def totalMilliseconds = now() - state.startTime        
         def milliseconds = (int)(totalMilliseconds % 1000)
         
         def totalSeconds = (int)Math.floor((totalMilliseconds - milliseconds) / 1000)
@@ -241,9 +241,9 @@ def repeat() {
         
         def durationString = ""
         if (days || durationResolution == "Days") {
-        durationString += "${days} day"
+            durationString += "${days} day"
             if (days != 1) {
-            durationString += "s"
+                durationString += "s"
             }
         }
         if (durationResolution != "Days") {
@@ -281,7 +281,7 @@ def repeat() {
         }
         
         if (durationString) {
-        message = message + " (" + durationString + ")"
+            message = message + " (" + durationString + ")"
         }
     }
     
