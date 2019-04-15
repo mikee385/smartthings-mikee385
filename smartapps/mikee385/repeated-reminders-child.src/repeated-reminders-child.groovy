@@ -17,7 +17,7 @@ definition(
     name: "Repeated Reminders - Child",
     namespace: "mikee385",
     author: "Michael Pierce",
-    parent: "mikee385:Repeated Reminders"
+    parent: "mikee385:Repeated Reminders",
     description: "Child app for Repeated Reminders.",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Family/App-QualityTimeTracker.png",

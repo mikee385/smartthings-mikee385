@@ -31,7 +31,7 @@ preferences {
 def settings() {
     dynamicPage(name: "settings", title: "Reminders", install: true, uninstall: true, submitOnChange: true) {
         section() {
-            app(name: "Automations", appName: "Repeated Reminders - Child", namespace: "mikee385", title: "Add New Reminder", multiple: true)
+            app(name: "Reminders", appName: "Repeated Reminders - Child", namespace: "mikee385", title: "Add New Reminder", multiple: true)
         }
     }
 }
