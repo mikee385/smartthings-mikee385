@@ -13,6 +13,14 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+def getTurnedOn() {
+    return "Turned On"
+}
+
+def getTurnedOff() {
+    return "Turned Off"
+}
+ 
 definition(
     name: "Repeated Reminders",
     namespace: "mikee385",
@@ -32,9 +40,9 @@ def settings() {
     dynamicPage(name: "settings", title: "", install: true, uninstall: true) {
         section("Reminder Switch") {
             input "reminderSwitch", "capability.switch", title: "Which switch should start and stop the reminder?", required: true, submitOnChange: true
-            if (reminderSwitch) input "reminderStart", "enum", title: "Start reminder when switch is:", options: ["Turned On", "Turned Off"], required: true, submitOnChange: true
+            if (reminderSwitch) input "reminderStart", "enum", title: "Start reminder when switch is:", options: [turnedOn, turnedOff], required: true, submitOnChange: true
             if (reminderSwitch && reminderStart) {
-                if (reminderStart == "Turned On") {
+                if (reminderStart == turnedOn) {
                     paragraph "Reminder will start when ${reminderSwitch} is turned on and will stop when ${reminderSwitch} is turned off."
                 } else {
                     paragraph "Reminder will start when ${reminderSwitch} is turned off and will stop when ${reminderSwitch} is turned on."
@@ -44,9 +52,9 @@ def settings() {
         if (reminderSwitch) {
             section("Pause Switch") {
                 input "pauseSwitch", "capability.switch", title: "Which switch should pause and resume the reminder? (optional)", required: false, submitOnChange: true
-                if (pauseSwitch) input "reminderPause", "enum", title: "Pause reminder when switch is:", options: ["Turned On", "Turned Off"], required: true, submitOnChange: true
+                if (pauseSwitch) input "reminderPause", "enum", title: "Pause reminder when switch is:", options: [turnedOn, turnedOff], required: true, submitOnChange: true
                 if (pauseSwitch && reminderPause) {
-                    if (reminderPause == "Turned On") {
+                    if (reminderPause == turnedOn) {
                         paragraph "Reminder will pause when ${pauseSwitch} is turned on and will resume when ${pauseSwitch} is turned off."
                     } else {
                         paragraph "Reminder will pause when ${pauseSwitch} is turned off and will resume when ${pauseSwitch} is turned on."
@@ -98,9 +106,9 @@ def initialize() {
 }
 
 def reminderSwitchOnHandler(evt) {
-    log.debug "reminderSwitchOnHandler called: $evt"
+    log.debug "${evt.displayName}'s ${evt.name} is ${evt.value}"
     
-    if (reminderStart == "Turned On") {
+    if (reminderStart == turnedOn) {
         start()
     } else {
         stop()
@@ -108,9 +116,9 @@ def reminderSwitchOnHandler(evt) {
 }
 
 def reminderSwitchOffHandler(evt) {
-    log.debug "reminderSwitchOffHandler called: $evt"
+    log.debug "${evt.displayName}'s ${evt.name} is ${evt.value}"
     
-    if (reminderStart == "Turned On") {
+    if (reminderStart == turnedOn) {
         stop()
     } else {
         start()
@@ -118,9 +126,9 @@ def reminderSwitchOffHandler(evt) {
 }
 
 def pauseSwitchOnHandler(evt) {
-    log.debug "pauseSwitchOnHandler called: $evt"
+    log.debug "${evt.displayName}'s ${evt.name} is ${evt.value}"
     
-    if (reminderPause == "Turned On") {
+    if (reminderPause == turnedOn) {
         pause()
     } else {
         resume()
@@ -128,39 +136,19 @@ def pauseSwitchOnHandler(evt) {
 }
 
 def pauseSwitchOffHandler(evt) {
-    log.debug "pauseSwitchOffHandler called: $evt"
+    log.debug "${evt.displayName}'s ${evt.name} is ${evt.value}"
     
-    if (reminderPause == "Turned On") {
+    if (reminderPause == turnedOn) {
         resume()
     } else {
         pause()
     }
 }
 
-def isStarted() {
-    if (reminderStart == "Turned On") {
-        return reminderSwitch.currentSwitch == "on"
-    } else {
-        return reminderSwitch.currentSwitch == "off"
-    }
-}
-
-def isPaused() {
-    if (pauseSwitch) {
-        if (reminderPause == "Turned On") {
-            return pauseSwitch.currentSwitch == "on"
-        } else {
-            return pauseSwitch.currentSwitch == "off"
-        }
-    } else {
-        return false
-    }
-}
-
 def start() {
-    log.debug "start called"
-    
-    if (!isPaused()) {
+    if (!isPaused) {
+        log.debug "Reminder has started"
+        
         if (startMessage) {
             sendPush(startMessage)
         }
@@ -171,7 +159,7 @@ def start() {
 }
 
 def stop() {
-    log.debug "stop called"
+    log.debug "Reminder has stopped"
     
     if (stopMessage) {
         sendPush(stopMessage)
@@ -180,9 +168,9 @@ def stop() {
 }
 
 def pause() {
-    log.debug "pause called"
-    
-    if (isStarted()) {
+    if (isStarted) {
+        log.debug "Reminder has been paused"
+        
         if (pauseMessage) {
             sendPush(pauseMessage)
         }
@@ -193,9 +181,9 @@ def pause() {
 }
 
 def resume() {
-    log.debug "resume called"
-    
-    if (isStarted()) {
+    if (isStarted) {
+        log.debug "Reminder has been resumed"
+        
         if (resumeMessage) {
             sendPush(resumeMessage)
         }
@@ -206,8 +194,6 @@ def resume() {
 }
 
 def begin() {
-    log.debug "begin called"
-    
     state.startTime = now()
     
     if (initialDuration > 0) {
@@ -218,14 +204,12 @@ def begin() {
 }
 
 def end() {
-    log.debug "end called"
-    
     unschedule()
 }
 
 def repeat() {
-    log.debug "repeat called"
-    
+    log.debug "Reminder has been running for ${now() - state.startTime} milliseconds"
+
     def message = repeatedMessage
     if (includeDurationInMessage) {    
         def totalMilliseconds = now() - state.startTime        
@@ -287,4 +271,24 @@ def repeat() {
     
     sendPush(message)
     runIn(repeatedDuration, repeat)
+}
+
+def getIsStarted() {
+    if (reminderStart == turnedOn) {
+        return reminderSwitch.currentSwitch == "on"
+    } else {
+        return reminderSwitch.currentSwitch == "off"
+    }
+}
+
+def getIsPaused() {
+    if (pauseSwitch) {
+        if (reminderPause == turnedOn) {
+            return pauseSwitch.currentSwitch == "on"
+        } else {
+            return pauseSwitch.currentSwitch == "off"
+        }
+    } else {
+        return false
+    }
 }
