@@ -808,31 +808,14 @@ def checkDeviceStatus(device, attributeName, comparison, expectedValue, actualVa
 
             }
         } else if (attribute.dataType == "BOOLEAN") {
-            if (comparison == comparison_Is) {
-                if (expectedValue == bool_True) {
-                    return actualValue == true
+            if (expectedValue == bool_True) {
+                return actualValue == true
 
-                } else if (expectedValue == bool_False) {
-                    return actualValue == false
+            } else if (expectedValue == bool_False) {
+                return actualValue == false
 
-                } else {
-                    log.debug "UNKNOWN BOOLEAN: ${expectedValue}"
-
-                }
-
-            } else if (comparison == comparison_IsNot) {
-                if (expectedValue == bool_True) {
-                    return actualValue == false
-
-                } else if (expectedValue == bool_False) {
-                    return actualValue == true
-
-                } else {
-                    log.debug "UNKNOWN BOOLEAN: ${expectedValue}"
-
-                }
             } else {
-                log.debug "UNKNOWN COMPARISON: ${comparison}"
+                log.debug "UNKNOWN BOOLEAN: ${expectedValue}"
 
             }
         } else {
