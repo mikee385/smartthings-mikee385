@@ -745,7 +745,7 @@ def checkConditions() {
     for (condition in conditions) {
         def result = true    
         if (condition.type == conditionType_DeviceStatus) {
-            def deviceValue = condition.device.currentValue("attributeName")
+            def deviceValue = condition.device.currentValue(condition.attributeName)
             result = checkDeviceStatus(condition.device, condition.attributeName, condition.comparison, condition.value, deviceValue)
             
         } else if (condition.type == conditionType_Mode) {
