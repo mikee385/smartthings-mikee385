@@ -238,7 +238,7 @@ def settings() {
             }
         }
         
-        if (conditionCombine != null && conditionCombine != "" && conditionCombine_Options.contains(conditionCombine)) {
+        if (conditionCombine == null || conditionCombine == "" || !conditionCombine_Options.contains(conditionCombine)) {
             app.updateSetting("conditionCombine", conditionCombine_Default)
         }
         if (numConditions > 1) {
