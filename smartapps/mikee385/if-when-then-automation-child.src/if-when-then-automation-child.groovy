@@ -31,24 +31,39 @@ def getTriggerType_AtSunrise() { "At Sunrise" }
 def getTriggerType_AtSunset() { "At Sunset" }
 def getTriggerType_AtSpecificTime() { "At a Specific Time" }
 
+def getTriggerType_Options() { [triggerType_DeviceChanges, triggerType_ModeChanges, triggerType_RoutineExectutes, triggerType_AtSpecificTime, triggerType_AtSunrise, triggerType_AtSunset] }
+
 def getConditionType_DeviceStatus() { "Device Status" }
 def getConditionType_Mode() { "Mode" }
 def getConditionType_Time() { "Time" }
 def getConditionType_Day() { "Days of the Week" }
 
+def getConditionType_Options() { [conditionType_DeviceStatus, conditionType_Mode, conditionType_Time, conditionType_Day] }
+
 def getConditionCombine_All() { "All" }
 def getConditionCombine_Any() { "Any" }
+
+def getConditionCombine_Options() { [conditionCombine_All, conditionCombine_Any] }
+def getConditionCombine_Default() { conditionCombine_All }
 
 def getActionType_ControlDevice() { "Control Device" }
 def getActionType_ChangeMode() { "Change Mode" }
 def getActionType_ExecuteRoutine() { "Execute Routine" }
 def getActionType_SendNotification() { "Send Notification" }
 
+def getActionType_Options() { [actionType_ControlDevice, actionType_ChangeMode, actionType_ExecuteRoutine, actionType_SendNotification] }
+
 def getBool_True() { "true" }
 def getBool_False() { "false" }
 
+def getBool_Options() { [bool_True, bool_False] }
+def getBool_Default() { bool_True }
+
 def getComparison_Is() { "is" }
 def getComparison_IsNot() { "is not" }
+
+def getComparison_Options_String() { [comparison_Is, comparison_IsNot] }
+def getComparison_Default_String() { comparison_Is }
 
 def getComparison_EqualTo() { "is equal to" }
 def getComparison_NotEqualTo() { "is not equal to" }
@@ -57,9 +72,17 @@ def getComparison_LessThan() { "is less than" }
 def getComparison_GreaterThanOrEqualTo() { "is greater than or equal to" }
 def getComparison_LessThanOrEqualTo() { "is less than or equal to" }
 
+def getComparison_Options_Number() { [comparison_EqualTo, comparison_NotEqualTo, comparison_GreaterThan, comparison_LessThan, comparison_GreaterThanOrEqualTo, comparison_LessThanOrEqualTo] }
+def getComparison_Default_Number() { comparison_EqualTo }
+
+def getTimeType_Options() { [triggerType_AtSpecificTime, triggerType_AtSunrise, triggerType_AtSunset] }
+def getDays_Options() { ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] }
+
 def getNotificationType_Push() { "Push Notification" }
 def getNotificationType_Text() { "Text Message" }
 def getNotificationType_Log() { "Notification Log" }
+
+def getNotificationType_Options() { [notificationType_Push, notificationType_Text, notificationType_Log] }
 
 preferences {
     page(name: "settings")
@@ -112,56 +135,73 @@ def settings() {
                 sectionTitle = "OR if this happens:"
             }            
             section(sectionTitle) {
-                input "triggerType_${triggerId}", "enum", title: "Trigger", options: [triggerType_DeviceChanges, triggerType_ModeChanges, triggerType_RoutineExectutes, triggerType_AtSpecificTime, triggerType_AtSunrise, triggerType_AtSunset], required: true, submitOnChange: true
+                input "triggerType_${triggerId}", "enum", title: "Trigger", options: triggerType_Options, required: true, submitOnChange: true
                 
                 if (index <= triggers.size()) {
                     def triggerType = triggers[index-1].type
-                    if (triggerType != null && triggerType != "") {
+                    if (triggerType != null && triggerType != "" && triggerType_Options.contains(triggerType)) {
                         if (triggerType == triggerType_DeviceChanges) {
                             input "triggerDevice_${triggerId}", "capability.sensor", title: "Device", required: true, submitOnChange: true
 
                             def triggerDevice = triggers[index-1].device
                             if (triggerDevice != null && triggerDevice != "") {
                                 def attributes = triggerDevice.supportedAttributes
-                                input "triggerAttributeName_${triggerId}", "enum", title: "Attribute", options: attributes*.name.unique().sort(), required: true, submitOnChange: true
+                                def attributeNames = attributes*.name.unique().sort()
+                                input "triggerAttributeName_${triggerId}", "enum", title: "Attribute", options: attributeNames, required: true, submitOnChange: true
 
                                 def triggerAttributeName = triggers[index-1].attributeName
-                                if (triggerAttributeName != null && triggerAttributeName != "") {
+                                if (triggerAttributeName != null && triggerAttributeName != "" && attributeNames.contains(triggerAttributeName)) {
                                     def attribute = attributes.find{element -> element.name == triggerAttributeName}
-                                    if (attribute != null) {
-                                        if (attribute.dataType == "ENUM") {
-                                            input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: [comparison_Is, comparison_IsNot], required: true, submitOnChange: true
-
-                                            def triggerComparison = triggers[index-1].comparison
-                                            if (triggerComparison != null && triggerComparison != "") {
-                                                if (attribute.values) {
-                                                    input "triggerValue_${triggerId}", "enum", title: "Value", options: attribute.values, required: true
-                                                } else {
-                                                    input "triggerValue_${triggerId}", "string", title: "Value", required: true
-                                                }
-                                            }
-                                            
-                                        } else if (attribute.dataType == "NUMBER") {
-                                            input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: [comparison_EqualTo, comparison_NotEqualTo, comparison_GreaterThan, comparison_LessThan, comparison_GreaterThanOrEqualTo, comparison_LessThanOrEqualTo], required: true, submitOnChange: true
-
-                                            def triggerComparison = triggers[index-1].comparison
-                                            if (triggerComparison != null && triggerComparison != "") {
-                                                input "triggerValue_${triggerId}", "number", title: "Value", range: "*..*", required: true
-                                            }
-                                            
-                                        } else if (attribute.dataType == "BOOLEAN") {
-                                            input "triggerValue_${triggerId}", "enum", title: "Value", options: [bool_True, bool_False], required: true
-                                        } else {
-                                            input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: [comparison_Is, comparison_IsNot], required: true, submitOnChange: true
-
-                                            def triggerComparison = triggers[index-1].comparison
-                                            if (triggerComparison != null && triggerComparison != "") {
-                                                input "triggerValue_${triggerId}", "string", title: "Value", required: true
-                                            }
+                                    
+                                    def attributeUnits = ""
+                                    def attributeState = triggerDevice.currentState(triggerAttributeName)
+                                    if (attributeState != null && attributeState.unit != null && attributeState != "") {
+                                        attributeUnits = "(${attributeState.unit})"
+                                    }
+                                    
+                                    if (attribute.dataType == "ENUM") {
+                                        def triggerComparison = triggers[index-1].comparison
+                                        if (triggerComparison == null || triggerComparison == "" || !comparison_Options_String.contains(triggerComparison)) {
+                                            app.updateSetting("triggerComparison_${triggerId}", comparison_Default_String)
                                         }
+                                        input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
+
+                                        if (attribute.values) {
+                                            input "triggerValue_${triggerId}", "enum", title: "Value ${attributeUnits}", options: attribute.values, required: true
+                                        } else {
+                                            input "triggerValue_${triggerId}", "string", title: "Value ${attributeUnits}", required: true
+                                        }
+
+                                    } else if (attribute.dataType == "NUMBER") {
+                                        def triggerComparison = triggers[index-1].comparison
+                                        if (triggerComparison == null || triggerComparison == "" || !comparison_Options_Number.contains(triggerComparison)) {
+                                            app.updateSetting("triggerComparison_${triggerId}", comparison_Default_Number)
+                                        }
+                                        input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: comparison_Options_Number, defaultValue: comparison_Default_Number, required: true, submitOnChange: true
+
+                                        input "triggerValue_${triggerId}", "number", title: "Value ${attributeUnits}", range: "*..*", required: true
+
+                                    } else if (attribute.dataType == "BOOLEAN") {
+                                        def triggerComparison = triggers[index-1].comparison
+                                        if (triggerComparison == null || triggerComparison == "" || !comparison_Options_String.contains(triggerComparison)) {
+                                            app.updateSetting("triggerComparison_${triggerId}", comparison_Default_String)
+                                        }
+                                        input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
+
+                                        def triggerValue = triggers[index-1].value
+                                        if (triggerValue == null || triggerValue == "" || !bool_Options.contains(triggerValue)) {
+                                            app.updateSetting("triggerValue_${triggerId}", bool_Default)
+                                        }
+                                        input "triggerValue_${triggerId}", "enum", title: "Value ${attributeUnits}", options: bool_Options, defaultValue: bool_Default, required: true                                        
                                         
                                     } else {
-                                        app.updateSetting("triggerAttributeName", "")
+                                        def triggerComparison = triggers[index-1].comparison
+                                        if (triggerComparison == null || triggerComparison == "" || !comparison_Options_String.contains(triggerComparison)) {
+                                            app.updateSetting("triggerComparison_${triggerId}", comparison_Default_String)
+                                        }
+                                        input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
+
+                                        input "triggerValue_${triggerId}", "string", title: "Value ${attributeUnits}", required: true
                                     }
                                 }
                             }
@@ -198,12 +238,12 @@ def settings() {
             }
         }
         
-        if (conditionCombine == null) {
-            app.updateSetting("conditionCombine", conditionCombine_All)
+        if (conditionCombine != null && conditionCombine != "" && conditionCombine_Options.contains(conditionCombine)) {
+            app.updateSetting("conditionCombine", conditionCombine_Default)
         }
         if (numConditions > 1) {
             section() {
-                input "conditionCombine", "enum", title: "Include which conditions?", options: [conditionCombine_All, conditionCombine_Any], defaultValue: conditionCombine_All, required: true, submitOnChange: true
+                input "conditionCombine", "enum", title: "Include which conditions?", options: conditionCombine_Options, defaultValue: conditionCombine_Default, required: true, submitOnChange: true
             }
         }
         
@@ -226,54 +266,73 @@ def settings() {
                 sectionTitle = "AND when this is true:"
             }
             section(sectionTitle) {
-                input "conditionType_${conditionId}", "enum", title: "Condition", options: [conditionType_DeviceStatus, conditionType_Mode, conditionType_Time, conditionType_Day], required: false, submitOnChange: true
+                input "conditionType_${conditionId}", "enum", title: "Condition", options: conditionType_Options, required: false, submitOnChange: true
                 
                 if (index <= conditions.size()) {
                     def conditionType = conditions[index-1].type
-                    if (conditionType != null && conditionType != "") {
+                    if (conditionType != null && conditionType != "" && conditionType_Options.contains(conditionType)) {
                         if (conditionType == conditionType_DeviceStatus) {
                             input "conditionDevice_${conditionId}", "capability.sensor", title: "Device", required: true, submitOnChange: true
                             
                             def conditionDevice = conditions[index-1].device
                             if (conditionDevice != null && conditionDevice != "") {
                                 def attributes = conditionDevice.supportedAttributes
-                                input "conditionAttributeName_${conditionId}", "enum", title: "Attribute", options: attributes*.name.unique().sort(), required: true, submitOnChange: true
+                                def attributeNames = attributes*.name.unique().sort()
+                                input "conditionAttributeName_${conditionId}", "enum", title: "Attribute", options: attributeNames, required: true, submitOnChange: true
 
                                 def conditionAttributeName = conditions[index-1].attributeName
-                                if (conditionAttributeName != null && conditionAttributeName != "") {
+                                if (conditionAttributeName != null && conditionAttributeName != "" && attributeNames.contains(conditionAttributeName)) {
                                     def attribute = attributes.find{element -> element.name == conditionAttributeName}
-                                    if (attribute != null) {
-                                        if (attribute.dataType == "ENUM") {
-                                            input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: [comparison_Is, comparison_IsNot], required: true, submitOnChange: true
-
-                                            def conditionComparison = conditions[index-1].comparison
-                                            if (conditionComparison != null && conditionComparison != "") {
-                                                if (attribute.values) {
-                                                    input "conditionValue_${conditionId}", "enum", title: "Value", options: attribute.values, required: true
-                                                } else {
-                                                    input "conditionValue_${conditionId}", "string", title: "Value", required: true
-                                                }
-                                            }
-                                            
-                                        } else if (attribute.dataType == "NUMBER") {
-                                            input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: [comparison_EqualTo, comparison_NotEqualTo, comparison_GreaterThan, comparison_LessThan, comparison_GreaterThanOrEqualTo, comparison_LessThanOrEqualTo], required: true, submitOnChange: true
-
-                                            def conditionComparison = conditions[index-1].comparison
-                                            if (conditionComparison != null && conditionComparison != "") {
-                                                input "conditionValue_${conditionId}", "number", title: "Value", range: "*..*", required: true
-                                            }
-                                            
-                                        } else if (attribute.dataType == "BOOLEAN") {
-                                            input "conditionValue_${conditionId}", "enum", title: "Value", options: [bool_True, bool_False], required: true
-                                            
-                                        } else {
-                                            input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: [comparison_Is, comparison_IsNot], required: true, submitOnChange: true
-
-                                            def conditionComparison = conditions[index-1].comparison
-                                            if (conditionComparison != null && conditionComparison != "") {
-                                                input "conditionValue_${conditionId}", "string", title: "Value", required: true
-                                            }
+                                    
+                                    def attributeUnits = ""
+                                    def attributeState = conditionDevice.currentState(conditionAttributeName)
+                                    if (attributeState != null && attributeState.unit != null && attributeState != "") {
+                                        attributeUnits = "(${attributeState.unit})"
+                                    }
+                                    
+                                    if (attribute.dataType == "ENUM") {
+                                        def conditionComparison = conditions[index-1].comparison
+                                        if (conditionComparison == null || conditionComparison == "" || !comparison_Options_String.contains(conditionComparison)) {
+                                            app.updateSetting("conditionComparison_${conditionId}", comparison_Default_String)
                                         }
+                                        input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
+
+                                        if (attribute.values) {
+                                            input "conditionValue_${conditionId}", "enum", title: "Value ${attributeUnits}", options: attribute.values, required: true
+                                        } else {
+                                            input "conditionValue_${conditionId}", "string", title: "Value ${attributeUnits}", required: true
+                                        }
+
+                                    } else if (attribute.dataType == "NUMBER") {
+                                        def conditionComparison = conditions[index-1].comparison
+                                        if (conditionComparison == null || conditionComparison == "" || !comparison_Options_Number.contains(conditionComparison)) {
+                                            app.updateSetting("conditionComparison_${conditionId}", comparison_Default_Number)
+                                        }
+                                        input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: comparison_Options_Number, defaultValue: comparison_Default_Number, required: true, submitOnChange: true
+
+                                        input "conditionValue_${conditionId}", "number", title: "Value ${attributeUnits}", range: "*..*", required: true
+
+                                    } else if (attribute.dataType == "BOOLEAN") {
+                                        def conditionComparison = conditions[index-1].comparison
+                                        if (conditionComparison == null || conditionComparison == "" || !comparison_Options_String.contains(conditionComparison)) {
+                                            app.updateSetting("conditionComparison_${conditionId}", comparison_Default_String)
+                                        }
+                                        input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
+
+                                        def conditionValue = conditions[index-1].value
+                                        if (conditionValue == null || conditionValue == "" || !bool_Options.contains(conditionValue)) {
+                                            app.updateSetting("conditionValue_${conditionId}", bool_Default)
+                                        }
+                                        input "conditionValue_${conditionId}", "enum", title: "Value ${attributeUnits}", options: bool_Options, defaultValue: bool_Default, required: true
+
+                                    } else {
+                                        def conditionComparison = conditions[index-1].comparison
+                                        if (conditionComparison == null || conditionComparison == "" || !comparison_Options_String.contains(conditionComparison)) {
+                                            app.updateSetting("conditionComparison_${conditionId}", comparison_Default_String)
+                                        }
+                                        input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
+
+                                        input "conditionValue_${conditionId}", "string", title: "Value ${attributeUnits}", required: true
                                     }
                                 }
                             }
@@ -282,10 +341,10 @@ def settings() {
                             input "conditionMode_${conditionId}", "enum", title: "Mode(s)", options: modes, multiple: true, required: true
                             
                         } else if (conditionType == conditionType_Time) {
-                            input "conditionStartType_${conditionId}", "enum", title: "Starting at", options: [triggerType_AtSpecificTime, triggerType_AtSunrise, triggerType_AtSunset], required: true, submitOnChange: true
+                            input "conditionStartType_${conditionId}", "enum", title: "Starting at", options: timeType_Options, required: true, submitOnChange: true
                             
                             def conditionStartType = conditions[index-1].startType
-                            if (conditionStartType != null && conditionStartType != "") {
+                            if (conditionStartType != null && conditionStartType != "" && timeType_Options.contains(conditionStartType)) {
                                 if (conditionStartType == triggerType_AtSpecificTime) {
                                     input "conditionStartTime_${conditionId}", "time", title: "Start Time", required: true
                                 } else if (conditionStartType == triggerType_AtSunrise) {
@@ -295,10 +354,10 @@ def settings() {
                                 }
                             }
 
-                            input "conditionEndType_${conditionId}", "enum", title: "Ending at", options: [triggerType_AtSpecificTime, triggerType_AtSunrise, triggerType_AtSunset], required: true, submitOnChange: true
+                            input "conditionEndType_${conditionId}", "enum", title: "Ending at", options: timeType_Options, required: true, submitOnChange: true
                             
                             def conditionEndType = conditions[index-1].endType
-                            if (conditionEndType != null && conditionEndType != "") {
+                            if (conditionEndType != null && conditionEndType != "" && timeType_Options.contains(conditionEndType)) {
                                 if (conditionEndType == triggerType_AtSpecificTime) {
                                     input "conditionEndTime_${conditionId}", "time", title: "End Time", required: true
                                 } else if (conditionEndType == triggerType_AtSunrise) {
@@ -309,7 +368,7 @@ def settings() {
                             }
                             
                         } else if (conditionType == conditionType_Day) {
-                            input "conditionDay_${conditionId}", "enum", title: "Day(s) of the Week", options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], multiple: true, required: true
+                            input "conditionDay_${conditionId}", "enum", title: "Day(s) of the Week", options: days_Options, multiple: true, required: true
                         }
                 
                         showConditionMore = true
@@ -344,18 +403,19 @@ def settings() {
                 sectionTitle = "AND then do this:"
             }
             section(sectionTitle) {
-                input "actionType_${actionId}", "enum", title: "Action", options: [actionType_ControlDevice, actionType_ChangeMode, actionType_ExecuteRoutine, actionType_SendNotification], required: true, submitOnChange: true
+                input "actionType_${actionId}", "enum", title: "Action", options: actionType_Options, required: true, submitOnChange: true
                 
                 if (index <= actions.size()) {
                     def actionType = actions[index-1].type
-                    if (actionType != null && actionType != "") {
+                    if (actionType != null && actionType != "" && actionType_Options.contains(actionType)) {
                         if (actionType == actionType_ControlDevice) {
                             input "actionDevice_${actionId}", "capability.actuator", title: "Device", required: true, submitOnChange: true
 
                             def actionDevice = actions[index-1].device
                             if (actionDevice != null) {
                                 def commands = actionDevice.supportedCommands
-                                input "actionCommandName_${actionId}", "enum", title: "Command", options: commands*.name.unique().sort(), required: true
+                                def commandNames = commands*.name.unique().sort()
+                                input "actionCommandName_${actionId}", "enum", title: "Command", options: commandNames, required: true
                             }
                             
                         } else if (actionType == actionType_ChangeMode) {
@@ -367,7 +427,7 @@ def settings() {
                             input "actionRoutine_${actionId}", "enum", title: "Routine(s)", options: routines, multiple: true, required: true
                             
                         } else if (actionType == actionType_SendNotification) {
-                            input "actionNotificationType_${actionId}", "enum", title: "Type(s)", options: [notificationType_Push, notificationType_Text, notificationType_Log], multiple: true, required: true, submitOnChange: true
+                            input "actionNotificationType_${actionId}", "enum", title: "Type(s)", options: notificationType_Options, multiple: true, required: true, submitOnChange: true
                             
                             def actionNotificationType = actions[index-1].notificationType
                             if (actionNotificationType != null) {
