@@ -618,6 +618,8 @@ def deviceHandler(evt) {
         for (trigger in triggers) {
             if (trigger.type == triggerType_DeviceChanges) {
                 if (trigger.device.id == evt.device.id && trigger.attributeName == evt.name) {
+    log.debug "Checking trigger: ${trigger}"
+                    
                     if (checkDeviceStatus(trigger.device, trigger.attributeName, trigger.comparison, trigger.value, evt.value)) {
                         result = true
                         break;
@@ -627,10 +629,16 @@ def deviceHandler(evt) {
         }
 
         if (result) {
+        log.debug "Triggers satisfied"
             result = checkConditions()
             if (result) {
+            log.debug "Conditions satisfied"
                 performActions()
+            } else {
+            log.debug "Conditions not satisfied"
             }
+        } else {
+        log.debug "Triggers not satisfied"
         }
         
     } catch (e) {
@@ -647,6 +655,8 @@ def modeHandler(evt) {
         def triggers = readTriggers()
         for (trigger in triggers) {
             if (trigger.type == triggerType_ModeChanges) {
+    log.debug "Checking trigger: ${trigger}"
+                
                 if (checkMode(trigger.mode, evt.value)) {
                     result = true
                     break;
@@ -655,10 +665,16 @@ def modeHandler(evt) {
         }
 
         if (result) {
+        log.debug "Triggers satisfied"
             result = checkConditions()
             if (result) {
+            log.debug "Conditions satisfied"
                 performActions()
+            } else {
+            log.debug "Conditions not satisfied"
             }
+        } else {
+        log.debug "Triggers not satisfied"
         }
         
     } catch (e) {
@@ -675,6 +691,8 @@ def routineHandler(evt) {
         def triggers = readTriggers()
         for (trigger in triggers) {
             if (trigger.type == triggerType_RoutineExectutes) {
+    log.debug "Checking trigger: ${trigger}"
+                
                 if (checkRoutine(trigger.routine, evt.displayName)) {
                     result = true
                     break;
@@ -683,10 +701,16 @@ def routineHandler(evt) {
         }
 
         if (result) {
+        log.debug "Triggers satisfied"
             result = checkConditions()
             if (result) {
+            log.debug "Conditions satisfied"
                 performActions()
+            } else {
+            log.debug "Conditions not satisfied"
             }
+        } else {
+        log.debug "Triggers not satisfied"
         }
         
     } catch (e) {
@@ -701,7 +725,10 @@ def sunriseHandler(evt) {
 
         def result = checkConditions()
         if (result) {
+            log.debug "Conditions satisfied"
             performActions()
+        } else {
+            log.debug "Conditions not satisfied"
         }
         
     } catch (e) {
@@ -716,7 +743,10 @@ def sunsetHandler(evt) {
 
         def result = checkConditions()
         if (result) {
+            log.debug "Conditions satisfied"
             performActions()
+        } else {
+            log.debug "Conditions not satisfied"
         }
         
     } catch (e) {
@@ -731,7 +761,10 @@ def timeHandler(evt) {
 
         def result = checkConditions()
         if (result) {
+            log.debug "Conditions satisfied"
             performActions()
+        } else {
+            log.debug "Conditions not satisfied"
         }
         
     } catch (e) {
@@ -743,6 +776,8 @@ def timeHandler(evt) {
 def checkConditions() {
     def conditions = readConditions()
     for (condition in conditions) {
+    log.debug "Checking condition: ${condition}"
+    
         def result = true    
         if (condition.type == conditionType_DeviceStatus) {
             def deviceValue = condition.device.currentValue(condition.attributeName)
@@ -786,21 +821,27 @@ def checkDeviceStatus(device, attributeName, comparison, expectedValue, actualVa
     if (attribute != null) {
         if (attribute.dataType == "NUMBER") {
             if (comparison == comparison_EqualTo) {
+            log.debug "Comparing ${actualValue} == ${expectedValue}"
                 return actualValue == expectedValue
 
             } else if (comparison == comparison_NotEqualTo) {
+            log.debug "Comparing ${actualValue} != ${expectedValue}"
                 return actualValue != expectedValue
 
             } else if (comparison == comparison_GreaterThan) {
+            log.debug "Comparing ${actualValue} > ${expectedValue}"
                 return actualValue > expectedValue
 
             } else if (comparison == comparison_LessThan) {
+            log.debug "Comparing ${actualValue} < ${expectedValue}"
                 return actualValue < expectedValue
 
             } else if (comparison == comparison_GreaterThanOrEqualTo) {
+            log.debug "Comparing ${actualValue} >= ${expectedValue}"
                 return actualValue >= expectedValue
 
             } else if (comparison == comparison_LessThanOrEqualTo) {
+            log.debug "Comparing ${actualValue} <= ${expectedValue}"
                 return actualValue <= expectedValue
 
             } else {
@@ -808,21 +849,16 @@ def checkDeviceStatus(device, attributeName, comparison, expectedValue, actualVa
 
             }
         } else if (attribute.dataType == "BOOLEAN") {
-            if (expectedValue == bool_True) {
-                return actualValue == true
-
-            } else if (expectedValue == bool_False) {
-                return actualValue == false
-
-            } else {
-                log.debug "UNKNOWN BOOLEAN: ${expectedValue}"
-
-            }
+            log.debug "Comparing ${actualValue} == ${expectedValue}"
+        return actualValue == expectedValue
+            
         } else {
             if (comparison == comparison_Is) {
+                log.debug "Comparing ${actualValue} == ${expectedValue}"
                 return actualValue == expectedValue
 
             } else if (comparison == comparison_IsNot) {
+                log.debug "Comparing ${actualValue} != ${expectedValue}"
                 return actualValue != expectedValue
 
             } else {
