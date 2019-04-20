@@ -653,7 +653,13 @@ def sunsetTimeHandler(evt) {
 
 def scheduleSunrise(sunriseString, offset) {
     def sunriseTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sunriseString)
-    def sunriseTimeWithOffset = new Date(sunriseTime.time + (offset * 60 * 1000))
+    
+    def sunriseTimeWithOffset
+    if (offset != null) {
+        sunriseTimeWithOffset = new Date(sunriseTime.time + (offset * 60 * 1000))
+    } else {
+        sunriseTimeWithOffset = sunriseTime
+    }
 
     log.debug "Scheduling for: $sunriseTimeWithOffset (sunrise is $sunriseTime)"
 
@@ -662,7 +668,13 @@ def scheduleSunrise(sunriseString, offset) {
 
 def scheduleSunset(sunsetString, offset) {
     def sunsetTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sunsetString)
-    def sunsetTimeWithOffset = new Date(sunsetTime.time + (offset * 60 * 1000))
+    
+    def sunsetTimeWithOffset
+    if (offset != null) {
+        sunsetTimeWithOffset = new Date(sunsetTime.time + (offset * 60 * 1000))
+    } else {
+        sunsetTimeWithOffset = sunsetTime
+    }
 
     log.debug "Scheduling for: $sunsetTimeWithOffset (sunset is $sunsetTime)"
 
