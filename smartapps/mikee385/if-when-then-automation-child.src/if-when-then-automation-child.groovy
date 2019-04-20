@@ -892,6 +892,7 @@ def checkDeviceStatus(device, attributeName, comparison, expectedValue, actualVa
     def attribute = attributes.find{element -> element.name == attributeName}    
     if (attribute != null) {
         if (attribute.dataType == "NUMBER") {
+            actualValue = actualValue.toDouble()
             if (comparison == comparison_EqualTo) {
             log.debug "Comparing ${actualValue} == ${expectedValue}"
                 return actualValue == expectedValue
