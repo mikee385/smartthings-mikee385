@@ -23,7 +23,7 @@ definition(
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/lighting-wizard.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/lighting-wizard@2x.png",
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/lighting-wizard@2x.png")
-    
+
 def getTriggerType_DeviceChanges() { "Device Changes" }
 def getTriggerType_ModeChanges() { "Mode Changes" }
 def getTriggerType_RoutineExectutes() { "Routine Exectutes" }
@@ -96,31 +96,31 @@ def settings() {
             numTriggers += 1
             app.updateSetting("triggerMore", false)
         }
-        
+
         def conditions = readConditions()
         def numConditions = conditions.size()
         if (conditionMore == true) {
             numConditions += 1
             app.updateSetting("conditionMore", false)
         }
-        
+
         def actions = readActions()
         def numActions = actions.size()
         if (actionMore == true) {
             numActions += 1
             app.updateSetting("actionMore", false)
         }
-        
+
         if (enabled == null) {
             app.updateSetting("enabled", true)
         }
         section() {
             input "enabled", "bool", title: "Enabled?", defaultValue: true, required: true
         }
-        
+
         def showTriggerMore = false
         for (int index = 1; index <= Math.max(numTriggers, 1); index++) {
-            def triggerId = -1            
+            def triggerId = -1
             if (index <= triggers.size()) {
                 triggerId = triggers[index-1].id
             } else if (triggers.size() > 0) {
@@ -133,46 +133,72 @@ def settings() {
                 sectionTitle = "If this happens:"
             } else {
                 sectionTitle = "OR if this happens:"
-            }            
+            }
             section(sectionTitle) {
                 input "triggerType_${triggerId}", "enum", title: "Trigger", options: triggerType_Options, required: true, submitOnChange: true
-                
+
                 if (index <= triggers.size()) {
                     def triggerType = triggers[index-1].type
                     if (triggerType != null && triggerType != "" && triggerType_Options.contains(triggerType)) {
                         if (triggerType == triggerType_DeviceChanges) {
-                            input "triggerDevice_${triggerId}", "capability.sensor", title: "Device", required: true, submitOnChange: true
-
+                            def inputTitle = ""
                             def triggerDevice = triggers[index-1].device
-                            if (triggerDevice != null && triggerDevice != "") {
-                                def attributes = triggerDevice.supportedAttributes
-                                def attributeNames = attributes*.name.unique().sort()
+                            if (triggerDevice != null && triggerDevice.size() > 1) {
+                                inputTitle = "Any of These Devices"
+                            } else {
+                                inputTitle = "Device"
+                            }
+                            input "triggerDevice_${triggerId}", "capability.sensor", title: inputTitle, multiple: true, required: true, submitOnChange: true
+
+                            if (triggerDevice != null && !triggerDevice.empty) {
+                                def attributes = null
+                                for (device in triggerDevice) {
+                                    def deviceAttributes = device.supportedAttributes.collectEntries {
+                                        [it.name, it.dataType]
+                                    }
+                                    if (attributes == null) {
+                                        attributes = deviceAttributes
+                                    } else {
+                                        attributes = attributes.intersect(deviceAttributes)
+                                    }
+                                }
+                                def attributeNames = attributes.keySet().collect().unique().sort()
                                 input "triggerAttributeName_${triggerId}", "enum", title: "Attribute", options: attributeNames, required: true, submitOnChange: true
 
                                 def triggerAttributeName = triggers[index-1].attributeName
                                 if (triggerAttributeName != null && triggerAttributeName != "" && attributeNames.contains(triggerAttributeName)) {
-                                    def attribute = attributes.find{element -> element.name == triggerAttributeName}
-                                    
+                                    def attributeDataType = attributes[triggerAttributeName]
+
                                     def attributeUnits = ""
-                                    def attributeState = triggerDevice.currentState(triggerAttributeName)
+                                    def attributeState = triggerDevice.first().currentState(triggerAttributeName)
                                     if (attributeState != null && attributeState.unit != null && attributeState != "") {
                                         attributeUnits = "(${attributeState.unit})"
                                     }
-                                    
-                                    if (attribute.dataType == "ENUM") {
+
+                                    if (attributeDataType == "ENUM") {
                                         def triggerComparison = triggers[index-1].comparison
                                         if (triggerComparison == null || triggerComparison == "" || !comparison_Options_String.contains(triggerComparison)) {
                                             app.updateSetting("triggerComparison_${triggerId}", comparison_Default_String)
                                         }
                                         input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
 
-                                        if (attribute.values) {
-                                            input "triggerValue_${triggerId}", "enum", title: "Value ${attributeUnits}", options: attribute.values, required: true
+                                        def values = null
+                                        for (device in triggerDevice) {
+                                            def deviceAttribute = device.supportedAttributes.find{element -> element.name == triggerAttributeName}
+                                            def deviceValues = deviceAttribute.values
+                                            if (values == null) {
+                                                values = deviceValues
+                                            } else {
+                                                values = values.intersect(deviceValues)
+                                            }
+                                        }
+                                        if (values) {
+                                            input "triggerValue_${triggerId}", "enum", title: "Value ${attributeUnits}", options: values, required: true
                                         } else {
                                             input "triggerValue_${triggerId}", "string", title: "Value ${attributeUnits}", required: true
                                         }
 
-                                    } else if (attribute.dataType == "NUMBER") {
+                                    } else if (attributeDataType == "NUMBER") {
                                         def triggerComparison = triggers[index-1].comparison
                                         if (triggerComparison == null || triggerComparison == "" || !comparison_Options_Number.contains(triggerComparison)) {
                                             app.updateSetting("triggerComparison_${triggerId}", comparison_Default_Number)
@@ -181,7 +207,7 @@ def settings() {
 
                                         input "triggerValue_${triggerId}", "number", title: "Value ${attributeUnits}", range: "*..*", required: true
 
-                                    } else if (attribute.dataType == "BOOLEAN") {
+                                    } else if (attributeDataType == "BOOLEAN") {
                                         def triggerComparison = triggers[index-1].comparison
                                         if (triggerComparison == null || triggerComparison == "" || !comparison_Options_String.contains(triggerComparison)) {
                                             app.updateSetting("triggerComparison_${triggerId}", comparison_Default_String)
@@ -192,8 +218,8 @@ def settings() {
                                         if (triggerValue == null || triggerValue == "" || !bool_Options.contains(triggerValue)) {
                                             app.updateSetting("triggerValue_${triggerId}", bool_Default)
                                         }
-                                        input "triggerValue_${triggerId}", "enum", title: "Value ${attributeUnits}", options: bool_Options, defaultValue: bool_Default, required: true                                        
-                                        
+                                        input "triggerValue_${triggerId}", "enum", title: "Value ${attributeUnits}", options: bool_Options, defaultValue: bool_Default, required: true
+
                                     } else {
                                         def triggerComparison = triggers[index-1].comparison
                                         if (triggerComparison == null || triggerComparison == "" || !comparison_Options_String.contains(triggerComparison)) {
@@ -206,23 +232,37 @@ def settings() {
                                 }
                             }
                         } else if (triggerType == triggerType_ModeChanges) {
+                            def inputTitle = ""
+                            def triggerMode = triggers[index-1].mode
+                            if (triggerMode != null && triggerMode.size() > 1) {
+                                inputTitle = "Any of These Modes"
+                            } else {
+                                inputTitle = "Mode"
+                            }
                             def modes = location.modes*.name.unique().sort()
-                            input "triggerMode_${triggerId}", "enum", title: "Mode(s)", options: modes, multiple: true, required: true
-                            
+                            input "triggerMode_${triggerId}", "enum", title: inputTitle, options: modes, multiple: true, required: true
+
                         } else if (triggerType == triggerType_RoutineExectutes) {
+                            def inputTitle = ""
+                            def triggerRoutine = triggers[index-1].routine
+                            if (triggerRoutine != null && triggerRoutine.size() > 1) {
+                                inputTitle = "Any of These Routines"
+                            } else {
+                                inputTitle = "Routine"
+                            }
                             def routines = location.helloHome?.getPhrases()*.label.unique().sort()
-                            input "triggerRoutine_${triggerId}", "enum", title: "Routine(s)", options: routines, multiple: true, required: true
-                            
+                            input "triggerRoutine_${triggerId}", "enum", title: inputTitle, options: routines, multiple: true, required: true
+
                         } else if (triggerType == triggerType_AtSpecificTime) {
                             input "triggerTime_${triggerId}", "time", title: "Time", required: true
-                            
+
                         } else if (triggerType == triggerType_AtSunrise) {
                             input "triggerOffset_${triggerId}", "number", title: "Offset in minutes (+/-)", range: "*..*", required: false
-                            
+
                         } else if (triggerType == triggerType_AtSunset) {
                             input "triggerOffset_${triggerId}", "number", title: "Offset in minutes (+/-)", range: "*..*", required: false
                         }
-                
+
                         showTriggerMore = true
                     } else {
                         showTriggerMore = false
@@ -237,7 +277,7 @@ def settings() {
                 input "triggerMore", "bool", title: "Add More Triggers?", required: true, submitOnChange: true
             }
         }
-        
+
         if (conditionCombine == null || conditionCombine == "" || !conditionCombine_Options.contains(conditionCombine)) {
             app.updateSetting("conditionCombine", conditionCombine_Default)
         }
@@ -246,10 +286,10 @@ def settings() {
                 input "conditionCombine", "enum", title: "Include which conditions?", options: conditionCombine_Options, defaultValue: conditionCombine_Default, required: true, submitOnChange: true
             }
         }
-        
+
         def showConditionMore = false
         for (int index = 1; index <= Math.max(numConditions, 1); index++) {
-            def conditionId = -1            
+            def conditionId = -1
             if (index <= conditions.size()) {
                 conditionId = conditions[index-1].id
             } else if (conditions.size() > 0) {
@@ -267,43 +307,78 @@ def settings() {
             }
             section(sectionTitle) {
                 input "conditionType_${conditionId}", "enum", title: "Condition", options: conditionType_Options, required: false, submitOnChange: true
-                
+
                 if (index <= conditions.size()) {
                     def conditionType = conditions[index-1].type
                     if (conditionType != null && conditionType != "" && conditionType_Options.contains(conditionType)) {
                         if (conditionType == conditionType_DeviceStatus) {
-                            input "conditionDevice_${conditionId}", "capability.sensor", title: "Device", required: true, submitOnChange: true
-                            
+                            def inputTitle = ""
                             def conditionDevice = conditions[index-1].device
-                            if (conditionDevice != null && conditionDevice != "") {
-                                def attributes = conditionDevice.supportedAttributes
-                                def attributeNames = attributes*.name.unique().sort()
+                            if (conditionDevice != null && conditionDevice.size() > 1) {
+                                def conditionDeviceCombine = conditions[index-1].deviceCombine
+                                if (conditionDeviceCombine == null || conditionDeviceCombine == "" || !conditionCombine_Options.contains(conditionDeviceCombine)) {
+                                    app.updateSetting("conditionDeviceCombine", conditionCombine_Default)
+                                }
+                                input "conditionDeviceCombine_${conditionId}", "enum", title: "Include which devices?", options: conditionCombine_Options, defaultValue: conditionCombine_Default, required: true, submitOnChange: true
+                                if (conditionDeviceCombine == conditionCombine_Any) {
+                                    inputTitle = "Any of These Devices"
+                                } else {
+                                    inputTitle = "All of These Devices"
+                                }
+                            } else {
+                                inputTitle = "Device"
+                            }
+                            input "conditionDevice_${conditionId}", "capability.sensor", title: inputTitle, multiple: true, required: true, submitOnChange: true
+
+                            if (conditionDevice != null && !conditionDevice.empty) {
+                                def attributes = null
+                                for (device in conditionDevice) {
+                                    def deviceAttributes = device.supportedAttributes.collectEntries {
+                                        [it.name, it.dataType]
+                                    }
+                                    if (attributes == null) {
+                                        attributes = deviceAttributes
+                                    } else {
+                                        attributes = attributes.intersect(deviceAttributes)
+                                    }
+                                }
+                                def attributeNames = attributes.keySet().collect().unique().sort()
                                 input "conditionAttributeName_${conditionId}", "enum", title: "Attribute", options: attributeNames, required: true, submitOnChange: true
 
                                 def conditionAttributeName = conditions[index-1].attributeName
                                 if (conditionAttributeName != null && conditionAttributeName != "" && attributeNames.contains(conditionAttributeName)) {
-                                    def attribute = attributes.find{element -> element.name == conditionAttributeName}
-                                    
+                                    def attributeDataType = attributes[conditionAttributeName]
+
                                     def attributeUnits = ""
-                                    def attributeState = conditionDevice.currentState(conditionAttributeName)
+                                    def attributeState = conditionDevice.first().currentState(conditionAttributeName)
                                     if (attributeState != null && attributeState.unit != null && attributeState != "") {
                                         attributeUnits = "(${attributeState.unit})"
                                     }
-                                    
-                                    if (attribute.dataType == "ENUM") {
+
+                                    if (attributeDataType == "ENUM") {
                                         def conditionComparison = conditions[index-1].comparison
                                         if (conditionComparison == null || conditionComparison == "" || !comparison_Options_String.contains(conditionComparison)) {
                                             app.updateSetting("conditionComparison_${conditionId}", comparison_Default_String)
                                         }
                                         input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: comparison_Options_String, defaultValue: comparison_Default_String, required: true, submitOnChange: true
 
-                                        if (attribute.values) {
-                                            input "conditionValue_${conditionId}", "enum", title: "Value ${attributeUnits}", options: attribute.values, required: true
+                                        def values = null
+                                        for (device in conditionDevice) {
+                                            def deviceAttribute = device.supportedAttributes.find{element -> element.name == conditionAttributeName}
+                                            def deviceValues = deviceAttribute.values
+                                            if (values == null) {
+                                                values = deviceValues
+                                            } else {
+                                                values = values.intersect(deviceValues)
+                                            }
+                                        }
+                                        if (values) {
+                                            input "conditionValue_${conditionId}", "enum", title: "Value ${attributeUnits}", options: values, required: true
                                         } else {
                                             input "conditionValue_${conditionId}", "string", title: "Value ${attributeUnits}", required: true
                                         }
 
-                                    } else if (attribute.dataType == "NUMBER") {
+                                    } else if (attributeDataType == "NUMBER") {
                                         def conditionComparison = conditions[index-1].comparison
                                         if (conditionComparison == null || conditionComparison == "" || !comparison_Options_Number.contains(conditionComparison)) {
                                             app.updateSetting("conditionComparison_${conditionId}", comparison_Default_Number)
@@ -312,7 +387,7 @@ def settings() {
 
                                         input "conditionValue_${conditionId}", "number", title: "Value ${attributeUnits}", range: "*..*", required: true
 
-                                    } else if (attribute.dataType == "BOOLEAN") {
+                                    } else if (attributeDataType == "BOOLEAN") {
                                         def conditionComparison = conditions[index-1].comparison
                                         if (conditionComparison == null || conditionComparison == "" || !comparison_Options_String.contains(conditionComparison)) {
                                             app.updateSetting("conditionComparison_${conditionId}", comparison_Default_String)
@@ -337,12 +412,19 @@ def settings() {
                                 }
                             }
                         } else if (conditionType == conditionType_Mode) {
+                            def inputTitle = ""
+                            def conditionMode = conditions[index-1].mode
+                            if (conditionMode != null && conditionMode.size() > 1) {
+                                inputTitle = "Any of These Modes"
+                            } else {
+                                inputTitle = "Mode"
+                            }
                             def modes = location.modes*.name.unique().sort()
-                            input "conditionMode_${conditionId}", "enum", title: "Mode(s)", options: modes, multiple: true, required: true
-                            
+                            input "conditionMode_${conditionId}", "enum", title: inputTitle, options: modes, multiple: true, required: true
+
                         } else if (conditionType == conditionType_Time) {
                             input "conditionStartType_${conditionId}", "enum", title: "Starting at", options: timeType_Options, required: true, submitOnChange: true
-                            
+
                             def conditionStartType = conditions[index-1].startType
                             if (conditionStartType != null && conditionStartType != "" && timeType_Options.contains(conditionStartType)) {
                                 if (conditionStartType == triggerType_AtSpecificTime) {
@@ -355,7 +437,7 @@ def settings() {
                             }
 
                             input "conditionEndType_${conditionId}", "enum", title: "Ending at", options: timeType_Options, required: true, submitOnChange: true
-                            
+
                             def conditionEndType = conditions[index-1].endType
                             if (conditionEndType != null && conditionEndType != "" && timeType_Options.contains(conditionEndType)) {
                                 if (conditionEndType == triggerType_AtSpecificTime) {
@@ -366,11 +448,18 @@ def settings() {
                                     input "conditionEndOffset_${conditionId}", "number", title: "Offset in minutes (+/-)", range: "*..*", required: false
                                 }
                             }
-                            
+
                         } else if (conditionType == conditionType_Day) {
-                            input "conditionDay_${conditionId}", "enum", title: "Day(s) of the Week", options: days_Options, multiple: true, required: true
+                            def inputTitle = ""
+                            def conditionDay = conditions[index-1].day
+                            if (conditionDay != null && conditionDay.size() > 1) {
+                                inputTitle = "Days of the Week"
+                            } else {
+                                inputTitle = "Day of the Week"
+                            }
+                            input "conditionDay_${conditionId}", "enum", title: inputTitle, options: days_Options, multiple: true, required: true
                         }
-                
+
                         showConditionMore = true
                     } else {
                         showConditionMore = false
@@ -385,10 +474,10 @@ def settings() {
                 input "conditionMore", "bool", title: "Add More Conditions?", required: true, submitOnChange: true
             }
         }
-        
+
         def showActionMore = false
         for (int index = 1; index <= Math.max(numActions, 1); index++) {
-            def actionId = -1            
+            def actionId = -1
             if (index <= actions.size()) {
                 actionId = actions[index-1].id
             } else if (actions.size() > 0) {
@@ -404,41 +493,68 @@ def settings() {
             }
             section(sectionTitle) {
                 input "actionType_${actionId}", "enum", title: "Action", options: actionType_Options, required: true, submitOnChange: true
-                
+
                 if (index <= actions.size()) {
                     def actionType = actions[index-1].type
                     if (actionType != null && actionType != "" && actionType_Options.contains(actionType)) {
                         if (actionType == actionType_ControlDevice) {
-                            input "actionDevice_${actionId}", "capability.actuator", title: "Device", required: true, submitOnChange: true
-
+                            def inputTitle = ""
                             def actionDevice = actions[index-1].device
-                            if (actionDevice != null) {
-                                def commands = actionDevice.supportedCommands
-                                def commandNames = commands*.name.unique().sort()
+                            if (actionDevice != null && actionDevice.size() > 1) {
+                                inputTitle = "All of These Devices"
+                            } else {
+                                inputTitle = "Device"
+                            }
+                            input "actionDevice_${actionId}", "capability.actuator", title: inputTitle, multiple: true, required: true, submitOnChange: true
+
+                            if (actionDevice != null && !actionDevice.empty) {
+                                def commands = null
+                                for (device in actionDevice) {
+                                    def deviceCommands = device.supportedCommands*.name
+                                    if (commands == null) {
+                                        commands = deviceCommands
+                                    } else {
+                                        commands = commands.intersect(deviceCommands)
+                                    }
+                                }
+                                def commandNames = commands.unique().sort()
                                 input "actionCommandName_${actionId}", "enum", title: "Command", options: commandNames, required: true
                             }
-                            
+
                         } else if (actionType == actionType_ChangeMode) {
                             def modes = location.modes*.name.unique().sort()
                             input "actionMode_${actionId}", "enum", title: "Mode", options: modes, required: true
-                            
+
                         } else if (actionType == actionType_ExecuteRoutine) {
+                            def inputTitle = ""
+                            def actionRoutine = actions[index-1].routine
+                            if (actionRoutine != null && actionRoutine.size() > 1) {
+                                inputTitle = "All of These Routines"
+                            } else {
+                                inputTitle = "Routine"
+                            }
                             def routines = location.helloHome?.getPhrases()*.label.unique().sort()
-                            input "actionRoutine_${actionId}", "enum", title: "Routine(s)", options: routines, multiple: true, required: true
-                            
+                            input "actionRoutine_${actionId}", "enum", title: inputTitle, options: routines, multiple: true, required: true
+
                         } else if (actionType == actionType_SendNotification) {
-                            input "actionNotificationType_${actionId}", "enum", title: "Type(s)", options: notificationType_Options, multiple: true, required: true, submitOnChange: true
-                            
+                            def inputTitle = ""
                             def actionNotificationType = actions[index-1].notificationType
+                            if (actionNotificationType != null && actionNotificationType.size() > 1) {
+                                inputTitle = "Types"
+                            } else {
+                                inputTitle = "Type"
+                            }
+                            input "actionNotificationType_${actionId}", "enum", title: inputTitle, options: notificationType_Options, multiple: true, required: true, submitOnChange: true
+
                             if (actionNotificationType != null) {
                                 if (actionNotificationType.contains(notificationType_Text)) {
                                     input "actionNotificationPhone_${actionId}", "phone", title: "Phone Number", required: true
                                 }
-                                
+
                                 input "actionNotificationMessage_${actionId}", "text", title: "Message", required: true
                             }
                         }
-                        
+
                         showActionMore = true
                     } else {
                         showActionMore = false
@@ -453,14 +569,14 @@ def settings() {
                 input "actionMore", "bool", title: "Add More Actions?", required: true, submitOnChange: true
             }
         }
-        
+
         section() {
             label title: "Assign a name", required: true
         }
     }
 }
 
-def readTriggers() {    
+def readTriggers() {
     def triggers = []
     def triggerTypes = settings.findAll{key, value -> key.startsWith("triggerType_") && value != null && value != ""}
     for (triggerType in triggerTypes) {
@@ -472,8 +588,8 @@ def readTriggers() {
 
                 triggers << [
                     id: triggerId,
-                    type: triggerType.value, 
-                    device: settings["triggerDevice_${triggerId}"], 
+                    type: triggerType.value,
+                    device: settings["triggerDevice_${triggerId}"],
                     attributeName: settings["triggerAttributeName_${triggerId}"],
                     comparison: settings["triggerComparison_${triggerId}"],
                     value: settings["triggerValue_${triggerId}"],
@@ -487,7 +603,7 @@ def readTriggers() {
     return triggers.sort{ it.id }
 }
 
-def readConditions() {    
+def readConditions() {
     def conditions = []
     def conditionTypes = settings.findAll{key, value -> key.startsWith("conditionType") && value != null && value != ""}
     for (conditionType in conditionTypes) {
@@ -499,10 +615,11 @@ def readConditions() {
 
                 conditions << [
                     id: conditionId,
-                    type: conditionType.value, 
-                    device: settings["conditionDevice_${conditionId}"], 
-                    attributeName: settings["conditionAttributeName_${conditionId}"], 
-                    comparison: settings["conditionComparison_${conditionId}"], 
+                    type: conditionType.value,
+                    device: settings["conditionDevice_${conditionId}"],
+                    deviceCombine: settings["conditionDeviceCombine_${conditionId}"],
+                    attributeName: settings["conditionAttributeName_${conditionId}"],
+                    comparison: settings["conditionComparison_${conditionId}"],
                     value: settings["conditionValue_${conditionId}"],
                     mode: settings["conditionMode_${conditionId}"],
                     startType: settings["conditionStartType_${conditionId}"],
@@ -530,10 +647,10 @@ def readActions() {
 
                 actions << [
                     id: actionId,
-                    type: actionType.value, 
-                    device: settings["actionDevice_${actionId}"], 
-                    commandName: settings["actionCommandName_${actionId}"], 
-                    mode: settings["actionMode_${actionId}"], 
+                    type: actionType.value,
+                    device: settings["actionDevice_${actionId}"],
+                    commandName: settings["actionCommandName_${actionId}"],
+                    mode: settings["actionMode_${actionId}"],
                     routine: settings["actionRoutine_${actionId}"],
                     notificationType: settings["actionNotificationType_${actionId}"],
                     notificationPhone: settings["actionNotificationPhone_${actionId}"],
@@ -549,7 +666,7 @@ def installed() {
         log.debug "Installed with settings: ${settings}"
 
         initialize()
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -563,7 +680,7 @@ def updated() {
         unsubscribe()
         unschedule()
         initialize()
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -579,40 +696,42 @@ def initialize() {
     def triggers = readTriggers()
     for (trigger in triggers) {
         if (trigger.type == triggerType_DeviceChanges) {
-            log.debug "Subscribing to ${trigger.device}.${trigger.attributeName}"
-            
-            subscribe(trigger.device, trigger.attributeName, deviceHandler)
-            
+            for (triggerDevice in trigger.device) {
+                log.debug "Subscribing to ${triggerDevice}.${trigger.attributeName}"
+
+                subscribe(triggerDevice, trigger.attributeName, deviceHandler)
+            }
+
         } else if (trigger.type == triggerType_ModeChanges) {
             log.debug "Subscribing to mode ${trigger.mode}"
-            
+
             subscribe(location, "mode", modeHandler)
-            
+
         } else if (trigger.type == triggerType_RoutineExectutes) {
             log.debug "Subscribing to routine ${trigger.routine}"
-            
+
             subscribe(location, "routineExecuted", routineHandler)
-            
+
         } else if (trigger.type == triggerType_AtSunrise) {
             log.debug "Subscribing to sunrise"
-            
+
             subscribe(location, "sunriseTime", sunriseTimeHandler)
             scheduleSunrise(location.currentValue("sunriseTime"), trigger.offset)
-            
+
         } else if (trigger.type == triggerType_AtSunset) {
             log.debug "Subscribing to sunset"
-            
+
             subscribe(location, "sunsetTime", sunsetTimeHandler)
             scheduleSunset(location.currentValue("sunsetTime"), trigger.offset)
-            
+
         } else if (trigger.type == triggerType_AtSpecificTime) {
             log.debug "Subscribing to time ${trigger.time}"
-            
+
             schedule(trigger.time, timeHandler)
-            
+
         } else {
             log.debug "UNKNOWN TRIGGER: ${trigger}"
-            
+
         }
     }
 }
@@ -627,7 +746,7 @@ def sunriseTimeHandler(evt) {
                 scheduleSunrise(evt.value, trigger.offset)
             }
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -644,7 +763,7 @@ def sunsetTimeHandler(evt) {
                 scheduleSunset(evt.value, trigger.offset)
             }
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -653,7 +772,7 @@ def sunsetTimeHandler(evt) {
 
 def scheduleSunrise(sunriseString, offset) {
     def sunriseTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sunriseString)
-    
+
     def sunriseTimeWithOffset
     if (offset != null) {
         sunriseTimeWithOffset = new Date(sunriseTime.time + (offset * 60 * 1000))
@@ -663,12 +782,12 @@ def scheduleSunrise(sunriseString, offset) {
 
     log.debug "Scheduling for: $sunriseTimeWithOffset (sunrise is $sunriseTime)"
 
-    runOnce(sunriseTimeWithOffset, sunriseHandler, [overwrite: false])    
+    runOnce(sunriseTimeWithOffset, sunriseHandler, [overwrite: false])
 }
 
 def scheduleSunset(sunsetString, offset) {
     def sunsetTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sunsetString)
-    
+
     def sunsetTimeWithOffset
     if (offset != null) {
         sunsetTimeWithOffset = new Date(sunsetTime.time + (offset * 60 * 1000))
@@ -689,12 +808,14 @@ def deviceHandler(evt) {
         def triggers = readTriggers()
         for (trigger in triggers) {
             if (trigger.type == triggerType_DeviceChanges) {
-                if (trigger.device.id == evt.device.id && trigger.attributeName == evt.name) {
-    log.debug "Checking trigger: ${trigger}"
-                    
-                    if (checkDeviceStatus(trigger.device, trigger.attributeName, trigger.comparison, trigger.value, evt.value)) {
-                        result = true
-                        break;
+                for (triggerDevice in trigger.device) {
+                    if (triggerDevice.id == evt.device.id && trigger.attributeName == evt.name) {
+                        log.debug "Checking trigger: ${trigger} with ${triggerDevice}"
+
+                        if (checkDeviceStatus(triggerDevice, trigger.attributeName, trigger.comparison, trigger.value, evt.value)) {
+                            result = true
+                            break;
+                        }
                     }
                 }
             }
@@ -712,7 +833,7 @@ def deviceHandler(evt) {
         } else {
         log.debug "Triggers not satisfied"
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -727,8 +848,8 @@ def modeHandler(evt) {
         def triggers = readTriggers()
         for (trigger in triggers) {
             if (trigger.type == triggerType_ModeChanges) {
-    log.debug "Checking trigger: ${trigger}"
-                
+                log.debug "Checking trigger: ${trigger}"
+
                 if (checkMode(trigger.mode, evt.value)) {
                     result = true
                     break;
@@ -748,7 +869,7 @@ def modeHandler(evt) {
         } else {
         log.debug "Triggers not satisfied"
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -763,8 +884,8 @@ def routineHandler(evt) {
         def triggers = readTriggers()
         for (trigger in triggers) {
             if (trigger.type == triggerType_RoutineExectutes) {
-    log.debug "Checking trigger: ${trigger}"
-                
+                log.debug "Checking trigger: ${trigger}"
+
                 if (checkRoutine(trigger.routine, evt.displayName)) {
                     result = true
                     break;
@@ -784,7 +905,7 @@ def routineHandler(evt) {
         } else {
         log.debug "Triggers not satisfied"
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -802,7 +923,7 @@ def sunriseHandler(evt) {
         } else {
             log.debug "Conditions not satisfied"
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -820,7 +941,7 @@ def sunsetHandler(evt) {
         } else {
             log.debug "Conditions not satisfied"
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -838,7 +959,7 @@ def timeHandler(evt) {
         } else {
             log.debug "Conditions not satisfied"
         }
-        
+
     } catch (e) {
         sendPush("${e}")
         throw e
@@ -848,28 +969,27 @@ def timeHandler(evt) {
 def checkConditions() {
     def conditions = readConditions()
     for (condition in conditions) {
-    log.debug "Checking condition: ${condition}"
-    
-        def result = true    
+        log.debug "Checking condition: ${condition}"
+
+        def result = true
         if (condition.type == conditionType_DeviceStatus) {
-            def deviceValue = condition.device.currentValue(condition.attributeName)
-            result = checkDeviceStatus(condition.device, condition.attributeName, condition.comparison, condition.value, deviceValue)
-            
+            result = checkDeviceConditions(condition)
+
         } else if (condition.type == conditionType_Mode) {
             result = checkMode(condition.mode, location.mode)
-            
+
         } else if (condition.type == conditionType_Time) {
             result = checkTimeRange(condition.startType, condition.startTime, condition.startOffset, condition.endType, condition.endTime, condition.endOffset)
-            
+
         } else if (condition.type == conditionType_Day) {
             result = checkDays(condition.day)
-            
+
         } else {
             log.debug "UNKNOWN CONDITION: ${condition}"
             return false
         }
-        
-        if (conditionCombine == conditionCombine == conditionCombine_Any) {
+
+        if (conditionCombine == conditionCombine_Any) {
             if (result == true) {
                 return true
             }
@@ -879,8 +999,33 @@ def checkConditions() {
             }
         }
     }
-    
-    if (conditionCombine == conditionCombine == conditionCombine_Any) {
+
+    if (conditionCombine == conditionCombine_Any) {
+        return false
+    } else {
+        return true
+    }
+}
+
+def checkDeviceConditions(condition) {
+    def result = true
+    for (conditionDevice in condition.device) {
+        log.debug "Checking device: ${conditionDevice}.${condition.attributeName}"
+
+        def deviceValue = conditionDevice.currentValue(condition.attributeName)
+        result = checkDeviceStatus(conditionDevice, condition.attributeName, condition.comparison, condition.value, deviceValue)
+
+        if (condition.deviceCombine == conditionCombine_Any) {
+            if (result == true) {
+                return true
+            }
+        } else {
+            if (result == false) {
+                return false
+            }
+        }
+    }
+    if (condition.deviceCombine == conditionCombine_Any) {
         return false
     } else {
         return true
@@ -889,7 +1034,7 @@ def checkConditions() {
 
 def checkDeviceStatus(device, attributeName, comparison, expectedValue, actualValue) {
     def attributes = device.supportedAttributes
-    def attribute = attributes.find{element -> element.name == attributeName}    
+    def attribute = attributes.find{element -> element.name == attributeName}
     if (attribute != null) {
         if (attribute.dataType == "NUMBER") {
             actualValue = actualValue.toDouble()
@@ -924,7 +1069,7 @@ def checkDeviceStatus(device, attributeName, comparison, expectedValue, actualVa
         } else if (attribute.dataType == "BOOLEAN") {
             log.debug "Comparing ${actualValue} == ${expectedValue}"
         return actualValue == expectedValue
-            
+
         } else {
             if (comparison == comparison_Is) {
                 log.debug "Comparing ${actualValue} == ${expectedValue}"
@@ -959,26 +1104,26 @@ def checkTimeRange(startType, startTime, startOffset, endType, endTime, endOffse
         if (startOffset != null) {
             fromTime = new Date(sunriseTime.time + (startOffset * 60 * 1000))
         } else {
-            fromTime = sunriseTime 
+            fromTime = sunriseTime
         }
-        
+
     } else if (startType == triggerType_AtSunset) {
         def sunsetString = location.currentValue("sunsetTime")
         def sunsetTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sunsetString)
         if (startOffset != null) {
             fromTime = new Date(sunsetTime.time + (startOffset * 60 * 1000))
         } else {
-            fromTime = sunsetTime 
+            fromTime = sunsetTime
         }
-        
+
     } else if (startType == triggerType_AtSpecificTime) {
         fromTime = startTime
-        
+
     } else {
         log.debug "UNKNOWN START TYPE: ${startType}"
         return false
-    }    
-    
+    }
+
     def toTime
     if (endType == triggerType_AtSunrise) {
         def sunriseString = location.currentValue("sunriseTime")
@@ -986,33 +1131,33 @@ def checkTimeRange(startType, startTime, startOffset, endType, endTime, endOffse
         if (endOffset != null) {
             toTime = new Date(sunriseTime.time + (endOffset * 60 * 1000))
         } else {
-            toTime = sunriseTime 
+            toTime = sunriseTime
         }
-        
+
     } else if (endType == triggerType_AtSunset) {
         def sunsetString = location.currentValue("sunsetTime")
         def sunsetTime = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sunsetString)
         if (endOffset != null) {
             toTime = new Date(sunsetTime.time + (endOffset * 60 * 1000))
         } else {
-            toTime = sunsetTime 
+            toTime = sunsetTime
         }
-        
+
     } else if (endType == triggerType_AtSpecificTime) {
         toTime = endTime
-        
+
     } else {
         log.debug "UNKNOWN END TYPE: ${endType}"
         return false
     }
-    
+
     return timeOfDayIsBetween(fromTime, toTime, new Date(), location.timeZone)
 }
 
 def checkDays(dayList) {
     def df = new java.text.SimpleDateFormat("EEEE")
     df.setTimeZone(location.timeZone)
-    
+
     def day = df.format(new Date())
     return dayList.contains(day)
 }
@@ -1021,27 +1166,29 @@ def performActions() {
     def actions = readActions()
     for (action in actions) {
         if (action.type == actionType_ControlDevice) {
-            action.device."${action.commandName}"()
-            
+            for (actionDevice in action.device) {
+                actionDevice."${action.commandName}"()
+            }
+
         } else if (action.type == actionType_ChangeMode) {
             location.setMode(action.mode)
-            
+
         } else if (action.type == actionType_ExecuteRoutine) {
             for (routine in action.routine) {
                 location.helloHome?.execute(routine)
             }
-            
+
         } else if (action.type == actionType_SendNotification) {
             if (action.notificationType.contains(notificationType_Push)) {
                 sendPushMessage(action.notificationMessage)
-            }        
+            }
             if (action.notificationType.contains(notificationType_Text)) {
                 sendSmsMessage(action.notificationPhone, action.notificationMessage)
             }
             if (action.notificationType.contains(notificationType_Log)) {
                 sendNotificationEvent(action.notificationMessage)
             }
-            
+
         } else {
             log.debug "UNKNOWN ACTION: ${action}"
         }
