@@ -661,6 +661,66 @@ def readActions() {
     return actions.sort{ it.id }
 }
 
+def clearUnusedTriggerDevices(triggers) {
+    def deviceTypes = settings.findAll{key, value -> key.startsWith("triggerDevice_") && value != null && value != ""}
+    for (deviceType in deviceTypes) {
+        def split = deviceType.key.split("_")
+        if (split.size() >= 2) {
+            def idString = split[-1]
+            if (idString.isInteger()) {
+                def deviceId = idString.toInteger()
+                def trigger = triggers.find{item-> item.id == deviceId}
+                if (trigger == null) {
+                    app.updateSetting(deviceType.key, null)
+                } else if (trigger.type != triggerType_DeviceChanges) {
+                    trigger.device = null
+                    app.updateSetting(deviceType.key, null)
+                }
+            }
+        }
+    }
+}
+
+def clearUnusedConditionDevices(conditions) {
+    def deviceTypes = settings.findAll{key, value -> key.startsWith("conditionDevice_") && value != null && value != ""}
+    for (deviceType in deviceTypes) {
+        def split = deviceType.key.split("_")
+        if (split.size() >= 2) {
+            def idString = split[-1]
+            if (idString.isInteger()) {
+                def deviceId = idString.toInteger()
+                def condition = conditions.find{item-> item.id == deviceId}
+                if (condition == null) {
+                    app.updateSetting(deviceType.key, null)
+                } else if (condition.type != conditionType_DeviceStatus) {
+                    condition.device = null
+                    app.updateSetting(deviceType.key, null)
+                }
+            }
+        }
+    }
+}
+
+def clearUnusedActionDevices(actions) {
+    def deviceTypes = settings.findAll{key, value -> key.startsWith("actionDevice_") && value != null && value != ""}
+    for (deviceType in deviceTypes) {
+        def split = deviceType.key.split("_")
+        if (split.size() >= 2) {
+            def idString = split[-1]
+            if (idString.isInteger()) {
+                def deviceId = idString.toInteger()
+                def action = actions.find{item-> item.id == deviceId}
+                if (action == null) {
+                    app.updateSetting(deviceType.key, null)
+                } else if (action.type != actionType_ControlDevice) {
+                    action.device = null
+                    app.updateSetting(deviceType.key, null)
+                }
+            }
+        }
+    }
+}
+
 def installed() {
     try {
         log.debug "Installed with settings: ${settings}"
@@ -688,12 +748,17 @@ def updated() {
 }
 
 def initialize() {
+    def triggers = readTriggers()
+    
+    clearUnusedTriggerDevices(triggers)
+    clearUnusedConditionDevices(readConditions())
+    clearUnusedActionDevices(readActions())
+    
     if (enabled == false) {
         log.debug "Automation Disabled"
         return
     }
-
-    def triggers = readTriggers()
+    
     for (trigger in triggers) {
         if (trigger.type == triggerType_DeviceChanges) {
             for (triggerDevice in trigger.device) {
