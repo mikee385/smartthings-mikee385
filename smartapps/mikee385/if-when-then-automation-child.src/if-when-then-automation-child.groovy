@@ -1065,7 +1065,7 @@ def checkConditions() {
         }
     }
 
-    if (conditionCombine == conditionCombine_Any) {
+    if (conditionCombine == conditionCombine_Any && conditions.size() > 0) {
         return false
     } else {
         return true
@@ -1090,7 +1090,7 @@ def checkDeviceConditions(condition) {
             }
         }
     }
-    if (condition.deviceCombine == conditionCombine_Any) {
+    if (condition.deviceCombine == conditionCombine_Any && condition.device.size() > 0) {
         return false
     } else {
         return true
