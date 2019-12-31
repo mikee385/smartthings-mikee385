@@ -1,5 +1,5 @@
 /**
- *  Trash Status Device Handler
+ *  Person Status Device Handler
  *
  *  Copyright 2019 Michael Pierce
  *
