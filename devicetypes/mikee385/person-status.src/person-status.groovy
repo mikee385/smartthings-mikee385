@@ -27,29 +27,25 @@ metadata {
         command "away"
     }
 
-    simulator {
-        // TODO: define status and reply messages here
-    }
-
     tiles(scale: 2) {
         multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true) {
             tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
-                attributeState "awake", label: 'Awake', icon:"st.nest.nest-away", backgroundColor:"#00A0DC"
+                attributeState "awake", label: 'Awake', icon:"st.nest.nest-home", backgroundColor:"#00A0DC"
                 attributeState "asleep", label: 'Asleep', icon:"st.Bedroom.bedroom2", backgroundColor:"#ffffff"
-                attributeState "away", label: 'Away', icon:"st.Office.office5", backgroundColor:"#ffffff"
+                attributeState "away", label: 'Away', icon:"st.nest.nest-away", backgroundColor:"#ffffff"
             }
         }
         standardTile("awake", "device.isAwake", width: 2, height: 2, canChangeIcon: true) {
-            state "awake", label:"Awake", icon: "st.nest.nest-away", action: "awake", backgroundColor:"#ffffff", nextState:"toAwake"
-            state "toAwake", label:"Updating", icon: "st.nest.nest-away", backgroundColor:"#00A0DC"
+            state "awake", label:"Awake", icon: "st.nest.nest-home", action: "awake", backgroundColor:"#ffffff", nextState:"toAwake"
+            state "toAwake", label:"Updating", icon: "st.nest.nest-home", backgroundColor:"#00A0DC"
         }
         standardTile("asleep", "device.isAsleep", width: 2, height: 2, canChangeIcon: true) {
             state "asleep", label:"Asleep", icon: "st.Bedroom.bedroom2", action: "asleep", backgroundColor:"#ffffff", nextState:"toAsleep"
             state "toAsleep", label:"Updating", icon:"st.Bedroom.bedroom2", backgroundColor:"#00A0DC"
         }
         standardTile("away", "device.isAway", width: 2, height: 2, canChangeIcon: true) {
-            state "away", label:"Away", icon: "st.Office.office5", action: "away", backgroundColor:"#ffffff", nextState:"toAway"
-            state "toAway", label:"Updating", icon:"st.Office.office5", backgroundColor:"#00A0DC"
+            state "away", label:"Away", icon: "st.nest.nest-away", action: "away", backgroundColor:"#ffffff", nextState:"toAway"
+            state "toAway", label:"Updating", icon:"st.nest.nest-away", backgroundColor:"#00A0DC"
         }
         main (["state"])
         details(["state", "awake", "asleep", "away"])
