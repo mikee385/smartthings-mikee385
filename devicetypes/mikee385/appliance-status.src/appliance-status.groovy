@@ -16,7 +16,6 @@
 metadata {
     definition (name: "Appliance Status", namespace: "mikee385", author: "Michael Pierce") {
         capability "Actuator"
-        capability "Button"
         capability "Sensor"
         capability "Switch"
 
@@ -30,10 +29,6 @@ metadata {
         command "start"
         command "finish"
         command "reset"
-    }
-
-    simulator {
-        // TODO: define status and reply messages here
     }
 
     tiles(scale: 2) {    
@@ -89,9 +84,6 @@ def updated() {
 def initialize() {
     log.debug "Executing 'initialize'"
     
-    sendEvent(name: "numberOfButtons", value: 3, displayed: false)
-    sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
-    
     if (!device.currentValue("state")) {
         reset()
     }
@@ -113,20 +105,6 @@ def off() {
     log.debug "Executing 'off'"
     
     finish()
-}
-
-def push(buttonNumber) {
-    log.debug "Executing 'push' with button '$buttonNumber'"
-        
-    if (button == 1) {
-        start()
-    } else if (button == 2) {
-        finish()
-    } else if (button == 3) {
-        reset()
-    } else {
-        sendEvent(name: "button", value: "pushed", data: [buttonNumber: "$buttonNumber"], descriptionText: "$device.displayName button $buttonNumber was pushed", isStateChange: true, displayed: true)
-    }
 }
 
 def start() {
@@ -156,8 +134,7 @@ private def setStateToStarted() {
     sendEvent(name: "finished", value: false, displayed: false)
     sendEvent(name: "unstarted", value: false, displayed: false)
     
-    sendEvent(name: "switch", value: 'on', displayed: false)
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], isStateChange: true, displayed: false)
+    sendEvent(name: "switch", value: "on", displayed: false)
     
     if (stateColorStarted == "Blue") {
         sendEvent(name: "stateColor", value: "started-blue", displayed: false)
@@ -179,8 +156,7 @@ private def setStateToFinished() {
     sendEvent(name: "finished", value: true, displayed: false)
     sendEvent(name: "unstarted", value: false, displayed: false)
     
-    sendEvent(name: "switch", value: 'off', displayed: false)
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 2], isStateChange: true, displayed: false)
+    sendEvent(name: "switch", value: "off", displayed: false)
     
     if (stateColorFinished == "Blue") {
         sendEvent(name: "stateColor", value: "finished-blue", displayed: false)
@@ -194,7 +170,7 @@ private def setStateToFinished() {
 }
 
 private def setStateToUnstarted() {
-    log.debug "Executing 'setStateToReset'"
+    log.debug "Executing 'setStateToUnstarted'"
     
     sendEvent(name: "state", value: "unstarted", descriptionText: "$device.displayName changed to unstarted", displayed: true)
     
@@ -202,8 +178,7 @@ private def setStateToUnstarted() {
     sendEvent(name: "finished", value: false, displayed: false)
     sendEvent(name: "unstarted", value: true, displayed: false)
     
-    sendEvent(name: "switch", value: 'off', displayed: false)
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 3], isStateChange: true, displayed: false)
+    sendEvent(name: "switch", value: "off", displayed: false)
     
     if (stateColorUnstarted == "Blue") {
         sendEvent(name: "stateColor", value: "unstarted-blue", displayed: false)
