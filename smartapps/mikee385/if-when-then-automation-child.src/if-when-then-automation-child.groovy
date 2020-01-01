@@ -728,7 +728,7 @@ def installed() {
         initialize()
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'installed' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -742,7 +742,7 @@ def updated() {
         initialize()
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'updated' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -813,7 +813,7 @@ def sunriseTimeHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'sunriseTimeHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -830,7 +830,7 @@ def sunsetTimeHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'sunsetTimeHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -900,7 +900,7 @@ def deviceHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'deviceHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -936,7 +936,7 @@ def modeHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'modeHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -972,7 +972,7 @@ def routineHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'routineHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -990,7 +990,7 @@ def sunriseHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'sunriseHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -1008,7 +1008,7 @@ def sunsetHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'sunsetHandler' for ${app.label}: ${e}")
         throw e
     }
 }
@@ -1026,7 +1026,7 @@ def timeHandler(evt) {
         }
 
     } catch (e) {
-        sendPush("${e}")
+        sendPush("Error in 'timeHandler' for ${app.label}: ${e}")
         throw e
     }
 }
