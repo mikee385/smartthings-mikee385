@@ -205,7 +205,7 @@ def settings() {
                                         }
                                         input "triggerComparison_${triggerId}", "enum", title: "Comparison", options: comparison_Options_Number, defaultValue: comparison_Default_Number, required: true, submitOnChange: true
 
-                                        input "triggerValue_${triggerId}", "number", title: "Value ${attributeUnits}", range: "*..*", required: true
+                                        input "triggerValue_${triggerId}", "decimal", title: "Value ${attributeUnits}", range: "*..*", required: true
 
                                     } else if (attributeDataType == "BOOLEAN") {
                                         def triggerComparison = triggers[index-1].comparison
@@ -385,7 +385,7 @@ def settings() {
                                         }
                                         input "conditionComparison_${conditionId}", "enum", title: "Comparison", options: comparison_Options_Number, defaultValue: comparison_Default_Number, required: true, submitOnChange: true
 
-                                        input "conditionValue_${conditionId}", "number", title: "Value ${attributeUnits}", range: "*..*", required: true
+                                        input "conditionValue_${conditionId}", "decimal", title: "Value ${attributeUnits}", range: "*..*", required: true
 
                                     } else if (attributeDataType == "BOOLEAN") {
                                         def conditionComparison = conditions[index-1].comparison
