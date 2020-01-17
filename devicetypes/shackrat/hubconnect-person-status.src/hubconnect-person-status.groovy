@@ -51,6 +51,15 @@ metadata {
             state "sleep", label:"Sleep", icon: "st.Bedroom.bedroom2", action: "asleep", backgroundColor:"#ffffff", nextState:"toSleep"
             state "toSleep", label:"Updating", icon:"st.Bedroom.bedroom2", backgroundColor:"#00A0DC"
         }
+        standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
+            state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+        }
+        standardTile("sync", "sync", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+            state "default", label: 'Sync', action: "sync", icon: "st.Bath.bath19"
+        }
+        valueTile("version", "version", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+            state "default", label: '${currentValue}'
+        }
         main (["state"])
         details(["state", "home", "away", "sleep", "refresh", "sync", "version"])
     }
