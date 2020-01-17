@@ -16,7 +16,6 @@
 metadata {
     definition (name: "Trash Status", namespace: "mikee385", author: "Michael Pierce") {
         capability "Actuator"
-        capability "Button"
         capability "Sensor"
         capability "Switch"
 
@@ -26,10 +25,6 @@ metadata {
 
         command "bringIn"
         command "takeOut"
-    }
-
-    simulator {
-        // TODO: define status and reply messages here
     }
 
     tiles(scale: 2) {
@@ -50,97 +45,53 @@ metadata {
         main (["state"])
         details(["state", "out", "in"])
     }
-    
-    preferences {
-    }
 }
 
 def installed() {
-    log.debug "Executing 'installed'"
-    
     initialize()
 }
 
 def updated() {
-    log.debug "Executing 'updated'"
-    
     unschedule()
     initialize()
 }
 
-def initialize() {
-    log.debug "Executing 'initialize'"
-    
-    sendEvent(name: "numberOfButtons", value: 2, displayed: false)
-    sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
-    
+def initialize() {    
     if (!device.currentValue("state")) {
         bringIn()
     }
 }
 
-// parse events into attributes
-def parse(String description) {
-    log.debug "Parsing '${description}'"
-}
-
-// handle commands
 def on() {
-    log.debug "Executing 'on'"
-    
     takeOut()
 }
 
 def off() {
-    log.debug "Executing 'off'"
-    
     bringIn()
 }
 
-def push(buttonNumber) {
-    log.debug "Executing 'push' with button '$buttonNumber'"
-        
-    if (button == 1) {
-        takeOut()
-    } else if (button == 2) {
-        bringIn()
-    } else {
-        sendEvent(name: "button", value: "pushed", data: [buttonNumber: "$buttonNumber"], descriptionText: "$device.displayName button $buttonNumber was pushed", isStateChange: true, displayed: true)
-    }
-}
-
 def bringIn() {
-    log.debug "Executing 'bringIn'"    
-    
     setStateToIn()
 }
 
 def takeOut() {
-    log.debug "Executing 'takeOut'"
-    
     setStateToOut()
 }
 
 private def setStateToIn() {
-    log.debug "Executing 'setStateToIn'"
-    
     sendEvent(name: "state", value: "in", descriptionText: "$device.displayName changed to in", displayed: true)
     
     sendEvent(name: "in", value: true, displayed: false)
     sendEvent(name: "out", value: false, displayed: false)
     
-    sendEvent(name: "switch", value: 'off', displayed: false)    
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], isStateChange: true, displayed: false)
+    sendEvent(name: "switch", value: 'off', displayed: false)
 }
 
 private def setStateToOut() {
-    log.debug "Executing 'setStateToOut'"
-    
     sendEvent(name: "state", value: "out", descriptionText: "$device.displayName changed to out", displayed: true)
     
     sendEvent(name: "in", value: false, displayed: false)
     sendEvent(name: "out", value: true, displayed: false)
     
     sendEvent(name: "switch", value: 'on', displayed: false)
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 2], isStateChange: true, displayed: false)
 }
