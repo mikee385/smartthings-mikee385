@@ -20,11 +20,11 @@ metadata {
         capability "Switch"
 
         attribute "state", "enum", ["started", "finished", "unstarted"]
+        attribute "stateColor", "enum", ["started-blue", "started-orange", "started-gray", "finished-blue", "finished-orange", "finished-gray", "unstarted-blue", "unstarted-orange", "unstarted-gray"]
+
         attribute "started", "boolean"
         attribute "finished", "boolean"
         attribute "unstarted", "boolean"
-        
-        attribute "stateColor", "enum", ["started-blue", "started-orange", "started-gray", "finished-blue", "finished-orange", "finished-gray", "unstarted-blue", "unstarted-orange", "unstarted-gray"]
 
         command "start"
         command "finish"
@@ -69,65 +69,29 @@ metadata {
 }
 
 def installed() {
-    log.debug "Executing 'installed'"
-    
     initialize()
 }
 
 def updated() {
-    log.debug "Executing 'updated'"
-    
     unschedule()
     initialize()
 }
 
 def initialize() {
-    log.debug "Executing 'initialize'"
-    
     if (!device.currentValue("state")) {
         reset()
     }
 }
 
-// parse events into attributes
-def parse(String description) {
-    log.debug "Parsing '${description}'"
-}
-
-// handle commands
 def on() {
-    log.debug "Executing 'on'"
-    
     start()
 }
 
 def off() {
-    log.debug "Executing 'off'"
-    
     finish()
 }
 
 def start() {
-    log.debug "Executing 'start'"    
-    
-    setStateToStarted()
-}
-
-def finish() {
-    log.debug "Executing 'finish'"
-    
-    setStateToFinished()
-}
-
-def reset() {
-    log.debug "Executing 'reset'"
-    
-    setStateToUnstarted()
-}
-
-private def setStateToStarted() {
-    log.debug "Executing 'setStateToStarted'"
-    
     sendEvent(name: "state", value: "started", descriptionText: "$device.displayName changed to started", displayed: true)
     
     sendEvent(name: "started", value: true, displayed: false)
@@ -147,9 +111,7 @@ private def setStateToStarted() {
     }
 }
 
-private def setStateToFinished() {
-    log.debug "Executing 'setStateToFinished'"
-    
+def finish() {
     sendEvent(name: "state", value: "finished", descriptionText: "$device.displayName changed to finished", displayed: true)
     
     sendEvent(name: "started", value: false, displayed: false)
@@ -169,9 +131,7 @@ private def setStateToFinished() {
     }
 }
 
-private def setStateToUnstarted() {
-    log.debug "Executing 'setStateToUnstarted'"
-    
+def reset() {
     sendEvent(name: "state", value: "unstarted", descriptionText: "$device.displayName changed to unstarted", displayed: true)
     
     sendEvent(name: "started", value: false, displayed: false)
