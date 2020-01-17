@@ -117,10 +117,11 @@ def reset() {
     parent.sendDeviceEvent(device.deviceNetworkId, "reset")
 }
 
-def sync()
-{
+def sync() {
     parent.syncDevice(device.deviceNetworkId, "omnipurpose")
     sendEvent([name: "version", value: "v${driverVersion.major}.${driverVersion.minor}.${driverVersion.build}"])
 }
 
-def getDriverVersion() {[platform: "Hubitat", major: 1, minor: 0, build: 0]}
+def getDriverVersion() {
+    [platform: "Hubitat", major: 1, minor: 0, build: 0]
+}
