@@ -37,6 +37,45 @@ metadata
 
 		command "sync"
 	}
+	
+	tiles(scale: 2)
+	{
+		multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
+		{
+		tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
+                attributeState "running", label: 'Running', backgroundColor:"#e86d13"
+                attributeState "finished", label: 'Finished', backgroundColor:"#00A0DC"
+                attributeState "unstarted", label: 'Unstarted', backgroundColor:"#ffffff"
+            }
+        }
+        standardTile("start", "device.running", width: 2, height: 2) {
+            state "running", label:"Start", action: "start", backgroundColor:"#008000", nextState:"toStart"
+            state "toStart", label:"Updating", backgroundColor:"#00A0DC"
+        }
+        standardTile("finish", "device.finished", width: 2, height: 2) {
+            state "finished", label:"Finish", action: "finish", backgroundColor:"#ff0000", nextState:"toFinish"
+            state "toFinish", label:"Updating", backgroundColor:"#00A0DC"
+        }
+        standardTile("reset", "device.unstarted", width: 2, height: 2) {
+            state "unstarted", label:"Reset", icon: "st.secondary.refresh-icon", action: "reset", backgroundColor:"#ffffff", nextState:"toReset"
+            state "toReset", label:"Updating", icon: "st.secondary.refresh-icon", backgroundColor:"#00A0DC"
+        }
+		standardTile("refresh", "device.switch", width: 2, height: 2, inactiveLabel: false, decoration: "flat")
+		{
+			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+		}
+		standardTile("sync", "sync", inactiveLabel: false, decoration: "flat", width: 2, height: 2)
+		{
+			state "default", label: 'Sync', action: "sync", icon: "st.Bath.bath19"
+		}
+		valueTile("version", "version", inactiveLabel: false, decoration: "flat", width: 2, height: 2)
+		{
+			state "default", label: '${currentValue}'
+		}
+		
+        main (["state"])
+        details(["state", "start", "finish", "reset"])
+	}
 }
 
 
