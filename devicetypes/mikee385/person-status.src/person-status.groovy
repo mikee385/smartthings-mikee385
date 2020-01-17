@@ -50,41 +50,24 @@ metadata {
         main (["state"])
         details(["state", "awake", "asleep", "away"])
     }
-    
-    preferences {
-    }
 }
 
 def installed() {
-    log.debug "Executing 'installed'"
-    
     initialize()
 }
 
 def updated() {
-    log.debug "Executing 'updated'"
-    
     unschedule()
     initialize()
 }
 
 def initialize() {
-    log.debug "Executing 'initialize'"
-    
     if (!device.currentValue("state")) {
         awake()
     }
 }
 
-// parse events into attributes
-def parse(String description) {
-    log.debug "Parsing '${description}'"
-}
-
-// handle commands
 def awake() {
-    log.debug "Executing 'awake'"
-    
     sendEvent(name: "state", value: "awake", descriptionText: "$device.displayName changed to awake", displayed: true)
     
     sendEvent(name: "presence", value: "present", displayed: false)
@@ -92,8 +75,6 @@ def awake() {
 }
 
 def asleep() {
-    log.debug "Executing 'asleep'"
-    
     sendEvent(name: "state", value: "asleep", descriptionText: "$device.displayName changed to asleep", displayed: true)
     
     sendEvent(name: "presence", value: "present", displayed: false)
@@ -101,8 +82,6 @@ def asleep() {
 }
 
 def away() {
-    log.debug "Executing 'away'"
-    
     sendEvent(name: "state", value: "away", descriptionText: "$device.displayName changed to away", displayed: true)
     
     sendEvent(name: "presence", value: "not present", displayed: false)
