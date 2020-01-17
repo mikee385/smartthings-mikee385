@@ -16,13 +16,11 @@
 metadata {
     definition (name: "Occupancy Status", namespace: "mikee385", author: "Michael Pierce") {
         capability "Actuator"
-        capability "Button"
         capability "Occupancy Sensor"
-        capability "Presence Sensor"
         capability "Sensor"
-        capability "Switch"
 
         attribute "state", "enum", ["occupied", "vacant", "checking", "blind"]
+        
         attribute "occupied", "boolean"
         attribute "vacant", "boolean"
         attribute "checking", "boolean"
@@ -31,10 +29,6 @@ metadata {
         command "occupied"
         command "vacant"
         command "checking"
-    }
-
-    simulator {
-        // TODO: define status and reply messages here
     }
 
     tiles(scale: 2) {
@@ -69,76 +63,29 @@ metadata {
 }
 
 def installed() {
-    log.debug "Executing 'installed'"
-    
     initialize()
 }
 
 def updated() {
-    log.debug "Executing 'updated'"
-    
     unschedule()
     initialize()
 }
 
 def initialize() {
-    log.debug "Executing 'initialize'"
-    
-    sendEvent(name: "numberOfButtons", value: 3, displayed: false)
-    sendEvent(name: "supportedButtonValues", value: ["pushed"], displayed: false)
-    
     if (!device.currentValue("state")) {
         vacant()
     }
 }
 
-// parse events into attributes
-def parse(String description) {
-    log.debug "Parsing '${description}'"
-}
-
-// handle commands
-def on() {
-    log.debug "Executing 'on'"
-    
-    occupied()
-}
-
-def off() {
-    log.debug "Executing 'off'"
-    
-    vacant()
-}
-
-def push(buttonNumber) {
-    log.debug "Executing 'push' with button '$buttonNumber'"
-        
-    if (button == 1) {
-        occupied()
-    } else if (button == 2) {
-        checking()
-    } else if (button == 3) {
-        vacant()
-    } else {
-        sendEvent(name: "button", value: "pushed", data: [buttonNumber: "$buttonNumber"], descriptionText: "$device.displayName button $buttonNumber was pushed", isStateChange: true, displayed: true)
-    }
-}
-
 def occupied() {
-    log.debug "Executing 'occupied'"    
-    
     setStateToOccupied()
 }
 
 def vacant() {
-    log.debug "Executing 'vacant'"
-    
     setStateToVacant()
 }
 
 def checking() {
-    log.debug "Executing 'checking'"
-    
     if (blindPeriod > 0) {
         setStateToBlind()
         runIn(blindPeriod, resumeFromBlind)
@@ -151,8 +98,6 @@ def checking() {
 }
 
 def resumeFromBlind() {
-    log.debug "Executing 'resumeFromBlind'"
-
     def remainingTime = checkingPeriod - blindPeriod
     if (remainingTime > 0) {
         setStateToChecking()
@@ -163,14 +108,10 @@ def resumeFromBlind() {
 }
 
 def resumeFromChecking() {
-    log.debug "Executing 'resumeFromChecking'"
-    
     setStateToVacant()
 }
 
 private def setStateToOccupied() {
-    log.debug "Executing 'setStateToOccupied'"
-    
     sendEvent(name: "state", value: "occupied", descriptionText: "$device.displayName changed to occupied", displayed: true)
     
     sendEvent(name: "occupied", value: true, displayed: false)
@@ -178,18 +119,12 @@ private def setStateToOccupied() {
     sendEvent(name: "checking", value: false, displayed: false)
     sendEvent(name: "blind", value: false, displayed: false)
     
-    sendEvent(name: "switch", value: 'on', displayed: false)
-    sendEvent(name: "presence", value: 'present', displayed: false)
     sendEvent(name: "occupancy", value: 'occupied', displayed: false)
-    
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], isStateChange: true, displayed: false)
     
     unschedule()
 }
 
 private def setStateToVacant() {
-    log.debug "Executing 'setStateToVacant'"
-    
     sendEvent(name: "state", value: "vacant", descriptionText: "$device.displayName changed to vacant", displayed: true)
     
     sendEvent(name: "occupied", value: false, displayed: false)
@@ -197,18 +132,12 @@ private def setStateToVacant() {
     sendEvent(name: "checking", value: false, displayed: false)
     sendEvent(name: "blind", value: false, displayed: false)
     
-    sendEvent(name: "switch", value: 'off', displayed: false)
-    sendEvent(name: "presence", value: 'not present', displayed: false)
     sendEvent(name: "occupancy", value: 'unoccupied', displayed: false)
-    
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 2], isStateChange: true, displayed: false)
     
     unschedule()
 }
 
 private def setStateToChecking() {
-    log.debug "Executing 'setStateToChecking'"
-    
     sendEvent(name: "state", value: "checking", descriptionText: "$device.displayName changed to checking", displayed: true)
 
     sendEvent(name: "occupied", value: true, displayed: false)
@@ -216,16 +145,10 @@ private def setStateToChecking() {
     sendEvent(name: "checking", value: true, displayed: false)
     sendEvent(name: "blind", value: false, displayed: false)
 
-    sendEvent(name: "switch", value: 'on', displayed: false)
-    sendEvent(name: "presence", value: 'present', displayed: false)
     sendEvent(name: "occupancy", value: 'occupied', displayed: false)
-
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 3], isStateChange: true, displayed: false)
 }
 
 private def setStateToBlind() {
-    log.debug "Executing 'setStateToBlind'"
-    
     sendEvent(name: "state", value: "blind", descriptionText: "$device.displayName changed to blind", displayed: true)
 
     sendEvent(name: "occupied", value: true, displayed: false)
@@ -233,9 +156,5 @@ private def setStateToBlind() {
     sendEvent(name: "checking", value: true, displayed: false)
     sendEvent(name: "blind", value: true, displayed: false)
 
-    sendEvent(name: "switch", value: 'on', displayed: false)
-    sendEvent(name: "presence", value: 'present', displayed: false)
     sendEvent(name: "occupancy", value: 'occupied', displayed: false)
-
-    sendEvent(name: "button", value: "pushed", data: [buttonNumber: 4], isStateChange: true, displayed: false)
 }
