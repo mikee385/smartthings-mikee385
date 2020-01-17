@@ -41,7 +41,7 @@ metadata
 	tiles(scale: 2)
 	{
 		multiAttributeTile(name: "state", type: "generic", width: 6, height: 4, canChangeBackground: true, canChangeIcon: true) {
-		tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
+			tileAttribute ("device.state", key: "PRIMARY_CONTROL") {
                 attributeState "running", label: 'Running', backgroundColor:"#e86d13"
                 attributeState "finished", label: 'Finished', backgroundColor:"#00A0DC"
                 attributeState "unstarted", label: 'Unstarted', backgroundColor:"#ffffff"
@@ -73,7 +73,7 @@ metadata
 		}
 		
         main (["state"])
-        details(["state", "start", "finish", "reset"])
+        details(["state", "start", "finish", "reset", "refresh", "sync", "version"])
 	}
 }
 
